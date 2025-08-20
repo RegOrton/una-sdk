@@ -111,6 +111,8 @@ public:
 
     FileSystem(const char *rootPath);
 
+    std::string getRootPath();
+
     virtual bool mkdir(const char *path) override;
 
     virtual std::unique_ptr<sdk::api::File> file(const char *path) override;

@@ -14,13 +14,15 @@
 #include "Simulator/Kernel/Mock/MockServiceControl.hpp"
 #include "Simulator/Sensors/ISensorCore.hpp"
 
+static constexpr char sFsPath[] = "../../../../../../UserAppFS/";
+
 namespace Simulator
 {
 KernelBase::KernelBase(bool useMutex, MockServiceControl& serviceControl, Interface::ISensorCore* sensoreCore)
     : mIPower()
     , mITime()
     , mISettings()
-    , mIFilesystem("../../../../../Output/")
+    , mIFilesystem(sFsPath)
     , mIUserAppMemAllocator()
     , mSynchManager()
     , mIUserApp(useMutex)
@@ -79,6 +81,11 @@ bool KernelBase::keyFilter(uint8_t key)
 const IKernel* KernelBase::getIKernel()
 {
     return mKernel;
+}
+
+std::string KernelBase::getFsPath()
+{
+    return mIFilesystem.getRootPath();
 }
 
 } /* namespace Simulator */
