@@ -13,6 +13,7 @@
 #include "Wrappers/StdLibWrappers.h"
 
 #include <vector>
+#include < filesystem >
 
 namespace Mock
 {
@@ -57,6 +58,7 @@ void File::setPath(const char *path)
     // Update pathBuffer whenever the path is set
     safe_strcpy(pathBuffer, path, sizeof(pathBuffer) - 1);
 }
+
 
 const char *File::getPath() const
 {
@@ -293,6 +295,12 @@ FileSystem::FileSystem(const char *rootPath)
 {
     mPathPrefix = rootPath;
     CreateDirectoryA(mPathPrefix, nullptr);
+}
+
+std::string FileSystem::getRootPath()
+{
+    std::filesystem::path relPath{ mPathPrefix };
+    return std::filesystem::absolute(relPath).string();
 }
 
 bool FileSystem::mkdir(const char *path)

@@ -14,6 +14,7 @@
 
 #include <cstdint>
 #include <cassert>
+#include <string>
 
 #include "IKernel.hpp"
 
@@ -91,6 +92,8 @@ public:
      * @retval  Pointer to the kernel interface (IKernel).
      */
     const IKernel* getIKernel();
+
+    std::string getFsPath();
 
 protected:
     Mock::Power             mIPower;
