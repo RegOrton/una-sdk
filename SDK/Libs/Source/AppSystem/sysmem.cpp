@@ -44,6 +44,12 @@ extern void (*__fini_array_start[])     (void) __attribute__((weak));
 extern void (*__fini_array_end[])       (void) __attribute__((weak));
 
 extern "C" {
+    void una_check_kernel() {
+        if ((uintptr_t)kernel == (uintptr_t)DUMMY_KERNEL_ADDR) {
+            for(;;){}
+        }
+    }
+
     /* Iterate over all the init routines.  */
     void __una_init_array (void)
     {
@@ -237,6 +243,12 @@ extern "C" {
         while (1) {}    /* Make sure we hang here */
     }
 
+}
+
+namespace __gnu_cxx {
+    void __verbose_terminate_handler() {
+        for(;;) { /* trap */ }
+    }
 }
 
 namespace std
