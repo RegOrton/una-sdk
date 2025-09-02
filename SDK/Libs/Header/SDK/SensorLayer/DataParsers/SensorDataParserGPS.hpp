@@ -41,13 +41,13 @@ namespace SDK
              * @brief Construct a new GPS parser over given ISensorData
              * @param data Reference to sensor data containing GPS fields
              */
-            GPS(Interface::ISensorData& data) : mData(data) {}
+            GPS(const Interface::ISensorData& data) : mData(data) {}
 
             /**
              * @brief Check if datais valid
              * @return true if data length is Field::kCount
              */
-            bool isDataValid()
+            bool isDataValid() const
             {
                 return mData.getLength() == Field::kCount;
             }
@@ -56,7 +56,7 @@ namespace SDK
              * @brief Get mask
              * @return Mask
              */
-            uint32_t getMask()
+            uint32_t getMask() const
             {
                 return mData.getAsU32(Field::kMask);
             }
@@ -65,7 +65,7 @@ namespace SDK
              * @brief Check if time field is valid
              * @return true if time is valid
              */
-            bool isTimeValid()
+            bool isTimeValid() const
             {
                 return ((mData.getAsU32(Field::kMask) & mMaskTime) != 0) && isDataValid();
             }
@@ -74,7 +74,7 @@ namespace SDK
              * @brief Get GPS time
              * @return Time as uint32_t (e.g., UNIX timestamp)
              */
-            uint32_t getTime()
+            uint32_t getTime() const
             {
                 return mData.getAsU32(Field::kTime);
             }
@@ -83,7 +83,7 @@ namespace SDK
              * @brief Check if coordinates (lat/lon/alt) are valid
              * @return true if coordinates are valid
              */
-            bool isCoordinatesValid()
+            bool isCoordinatesValid() const
             {
                 return ((mData.getAsU32(Field::kMask) & mMaskCoords) != 0) && isDataValid();
             }
@@ -94,7 +94,7 @@ namespace SDK
              * @param lon [out] Longitude in decimal degrees
              * @param alt [out] Altitude in meters
              */
-            void getCoordinates(float& lat, float& lon, float& alt)
+            void getCoordinates(float& lat, float& lon, float& alt) const
             {
                 lat = mData.getAsFloat(Field::kLat);
                 lon = mData.getAsFloat(Field::kLon);
@@ -105,7 +105,7 @@ namespace SDK
              * @brief Get latitude
              * @return Latitude in decimal degrees
              */
-            float getLatitude()
+            float getLatitude() const
             {
                 return mData.getAsFloat(Field::kLat);
             }
@@ -114,7 +114,7 @@ namespace SDK
              * @brief Get longitude
              * @return Longitude in decimal degrees
              */
-            float getLongitude()
+            float getLongitude() const
             {
                 return mData.getAsFloat(Field::kLon);
             }
@@ -123,7 +123,7 @@ namespace SDK
              * @brief Get altitude
              * @return Altitude in meters
              */
-            float getAltitude()
+            float getAltitude() const
             {
                 return mData.getAsFloat(Field::kAlt);
             }
@@ -132,7 +132,7 @@ namespace SDK
              * @brief Check if speed is valid
              * @return true if speed is valid
              */
-            bool isSpeedValid()
+            bool isSpeedValid() const
             {
                 return ((mData.getAsU32(Field::kMask) & mMaskSpeed) != 0) && isDataValid();
             }
@@ -141,7 +141,7 @@ namespace SDK
              * @brief Get GPS speed
              * @return Speed in meters per second
              */
-            float getSpeed()
+            float getSpeed() const
             {
                 return mData.getAsFloat(Field::kSpeed);
             }
@@ -150,7 +150,7 @@ namespace SDK
              * @brief Get total number of expected fields
              * @return Field count (6)
              */
-            static uint8_t getFieldsNumber()
+            static constexpr uint8_t getFieldsNumber()
             {
                 return Field::kCount;
             }
@@ -173,7 +173,7 @@ namespace SDK
             static constexpr uint8_t mMaskCoords = 0x02;
             static constexpr uint8_t mMaskSpeed  = 0x04;
 
-            Interface::ISensorData& mData;
+            const Interface::ISensorData& mData;
         }; /* class GPS */
     }; /* namespace SensorDataParser */
 
