@@ -34,7 +34,7 @@ namespace SDK
              * @brief Construct a new HeartRate parser over given ISensorData
              * @param data Reference to sensor data containing 1 float field
              */
-            HeartRate(Interface::ISensorData& data) : mData(data) {}
+            HeartRate(const Interface::ISensorData& data) : mData(data) {}
 
             /**
              * @brief Check if data is valid (should contain exactly 1 field)
@@ -71,7 +71,7 @@ namespace SDK
                 kCount      ///< Total number of fields
             };
 
-            Interface::ISensorData& mData;
+            const Interface::ISensorData& mData;
         }; /* class HeartRate */
     }; /* namespace SensorDataParser */
 
