@@ -12,7 +12,7 @@
 #ifndef __LOGGER_HPP
 #define __LOGGER_HPP
 
-#include "Interfaces/IMutex.hpp"
+#include "SDK/Interfaces/IMutex.hpp"
 
 #include <stdio.h>
 
