@@ -164,33 +164,9 @@ extern "C" {
 
     void* _realloc_r(struct _reent *r, void *ptr, size_t new_size)
     {
-        // If ptr == NULL, realloc behaves like malloc.
-        if (ptr == NULL) {
-            return _malloc_r(r, new_size);
-        }
+        (void) r;
 
-        // If new_size == 0, release the block and return NULL.
-        if (new_size == 0) {
-            _free_r(r, ptr);
-            return NULL;
-        }
-
-        // Allocate a new block of memory.
-        void *new_ptr = _malloc_r(r, new_size);
-        if (new_ptr == NULL) {
-            // Selection failed, return NULL.
-            return NULL;
-        }
-
-        // We copy the data from the old block to the new one (we copy the smaller of the two sizes).
-        // Assume the old block contains at least new_size bytes for simplicity.
-        // If exact copying is required, block size should be stored separately.
-        memcpy(new_ptr, ptr, new_size);
-
-        // Free the old block.
-        _free_r(r, ptr);
-
-        return new_ptr;
+        return kernel->mem.realloc(ptr, new_size);
     }
 
     __attribute__((noreturn)) void __cxa_pure_virtual()
