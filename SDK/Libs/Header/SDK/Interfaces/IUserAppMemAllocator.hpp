@@ -37,6 +37,14 @@ public:
      */
     virtual void free(void *ptr) = 0;
 
+    /**
+     * @brief Reallocates a memory block
+     *
+     * @param ptr  Previously allocated pointer or nullptr.
+     * @param size New block size in bytes.
+     */
+    virtual void* realloc(void* ptr, size_t size) = 0;
+
 protected:
 
     /**
