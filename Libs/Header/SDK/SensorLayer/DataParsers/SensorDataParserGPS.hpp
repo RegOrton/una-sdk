@@ -3,7 +3,7 @@
  * @file    SensorDataParserGPS.hpp
  * @date    02-August-2025
  * @author  Oleksandr Tymoshenko <oleksandr.tymoshenko@droid-technologies.com>
- * @brief   SensorData parser for SENSOR_TYPE_GPS
+ * @brief   SensorData parser for GPS sensor
  * 
  ******************************************************************************
  *

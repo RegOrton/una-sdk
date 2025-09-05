@@ -31,9 +31,9 @@ namespace SDK::Interface
 
         virtual void disconnect(SDK::Interface::ISensorDataListener* listener) = 0;
         
-        virtual SDK::Sensor::Type getType() = 0;
+        virtual SDK::Sensor::Type getType() const = 0;
 
-        virtual float getPeriod() { return mPeriod; }
+        virtual float getPeriod() const { return mPeriod; }
 
     protected:
         float mPeriod;

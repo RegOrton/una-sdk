@@ -3,7 +3,7 @@
  * @file    SensorDataParserHeartRate.hpp
  * @date    02-August-2025
  * @author  Oleksandr Tymoshenko <oleksandr.tymoshenko@droid-technologies.com>
- * @brief   SensorData parser for SENSOR_TYPE_HEART_RATE
+ * @brief   SensorData parser for HEART_RATE sensor
  *
  ******************************************************************************
  *
@@ -13,7 +13,7 @@
 #ifndef __SENSOR_DATA_PARSER_HEART_RATE_HPP
 #define __SENSOR_DATA_PARSER_HEART_RATE_HPP
 
-#include "SDK/SensorLayer/ISensorData.hpp"
+#include "SDK/Interfaces/ISensorData.hpp"
 
 #include <cstdint>
 
