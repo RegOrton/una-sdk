@@ -75,7 +75,10 @@ namespace SDK::Sensor
         GPS,
 
         /*!< Floor counter */
-        FLOOR_COUNTER
+        FLOOR_COUNTER,
+
+        /*!< Activity */
+        ACTIVITY
     };
 
 } /* namespace Sensor */

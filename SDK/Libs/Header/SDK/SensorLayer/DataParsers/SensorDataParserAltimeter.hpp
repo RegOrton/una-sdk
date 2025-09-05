@@ -3,7 +3,7 @@
  * @file    SensorDataParserAltimeter.hpp
  * @date    02-August-2025
  * @author  Oleksandr Tymoshenko <oleksandr.tymoshenko@droid-technologies.com>
- * @brief   SensorData parser for SENSOR_TYPE_ALTIMETER
+ * @brief   SensorData parser for ALTIMETER sensor
  * 
  ******************************************************************************
  *
@@ -13,7 +13,7 @@
 #ifndef __SENSOR_DATA_PARSER_ALTIMETER_HPP
 #define __SENSOR_DATA_PARSER_ALTIMETER_HPP
 
-#include "SDK/SensorLayer/ISensorData.hpp"
+#include "SDK/Interfaces/ISensorData.hpp"
 
 #include <cstdint>
 

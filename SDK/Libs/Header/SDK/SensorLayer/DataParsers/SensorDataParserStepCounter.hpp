@@ -3,7 +3,7 @@
  * @file    SensorDataParserStepCounter.hpp
  * @date    02-August-2025
  * @author  Oleksandr Tymoshenko <oleksandr.tymoshenko@droid-technologies.com>
- * @brief   SensorData parser for SENSOR_TYPE_STEP_COUNTER
+ * @brief   SensorData parser for STEP_COUNTER sensor
  *
  ******************************************************************************
  *
@@ -13,7 +13,7 @@
 #ifndef __SENSOR_DATA_PARSER_STEP_COUNTER_HPP
 #define __SENSOR_DATA_PARSER_STEP_COUNTER_HPP
 
-#include "SDK/SensorLayer/ISensorData.hpp"
+#include "SDK/Interfaces/ISensorData.hpp"
 
 #include <cstdint>
 
