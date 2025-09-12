@@ -24,8 +24,6 @@
 #include <cstdint>
 #include <cstddef>
 
-#include "IKernel.hpp"
-
 // Kernel interfaces
 #include "SDK/Interfaces/IPower.hpp"
 #include "SDK/Interfaces/ISettings.hpp"

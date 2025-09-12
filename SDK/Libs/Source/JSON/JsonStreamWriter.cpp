@@ -11,7 +11,7 @@
 #include <cstring>
 #include <cassert>
 
-#include "SDK/JsonStreamWriter.hpp"
+#include "SDK/JSON/JsonStreamWriter.hpp"
 
 namespace SDK
 {
@@ -609,5 +609,5 @@ void JsonStreamWriter::flushOutput()
     }
 }
 
-} /* namespace sdk */
+} /* namespace SDK */
 
