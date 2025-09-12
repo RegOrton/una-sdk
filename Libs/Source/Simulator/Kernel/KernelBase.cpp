@@ -10,9 +10,11 @@
  */
 
 #include "SDK/Simulator/Kernel/KernelBase.hpp"
-#include "gui/common/GuiConfig.hpp"
 #include "SDK/Simulator/Kernel/Mock/MockServiceControl.hpp"
 #include "SDK/Simulator/Sensors/ISensorCore.hpp"
+
+// TODO: Move to common SDK file
+#include "gui/common/GuiConfig.hpp"
 
 static constexpr char sFsPath[] = "../../../../../Output/";
 

@@ -460,7 +460,6 @@ private:
     void flushOutput();
 };
 
-
-} /* namespace sdk */
+} /* namespace SDK */
 
 #endif /* __JSON_STREAM_WRITER_HPP */

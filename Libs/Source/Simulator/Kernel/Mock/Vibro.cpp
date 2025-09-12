@@ -12,10 +12,9 @@
 
 #include "SDK/Simulator/Kernel/Mock/Vibro.hpp"
 
-#define TAG                 "Vibro"
-#define LOG_MODULE_PRX      TAG"::"
+#define LOG_MODULE_PRX      "Mock::Vibro::"
 #define LOG_MODULE_LEVEL    LOG_LEVEL_DEBUG
-#include "Logger.h"
+#include "SDK/UnaLogger/Logger.h"
 
 namespace Mock {
 

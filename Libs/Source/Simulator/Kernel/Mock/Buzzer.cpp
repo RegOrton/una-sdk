@@ -12,10 +12,9 @@
 
 #include "SDK/Simulator/Kernel/Mock/Buzzer.hpp"
 
-#define TAG                 "Buzzer"
-#define LOG_MODULE_PRX      TAG"::"
+#define LOG_MODULE_PRX      "Mock::Buzzer::"
 #define LOG_MODULE_LEVEL    LOG_LEVEL_DEBUG
-#include "Logger.h"
+#include "SDK/UnaLogger/Logger.h"
 
 namespace Mock {
 

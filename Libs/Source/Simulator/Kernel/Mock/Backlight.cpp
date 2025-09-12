@@ -12,10 +12,9 @@
 
 #include "SDK/Simulator/Kernel/Mock/Backlight.hpp"
 
-#define TAG                 "Mock::Backlight"
-#define LOG_MODULE_PRX      TAG"::"
+#define LOG_MODULE_PRX      "Mock::Backlight::"
 #define LOG_MODULE_LEVEL    LOG_LEVEL_DEBUG
-#include "Logger.h"
+#include "SDK/UnaLogger/Logger.h"
 
 namespace Mock {
     bool Backlight::on(uint32_t timeout)

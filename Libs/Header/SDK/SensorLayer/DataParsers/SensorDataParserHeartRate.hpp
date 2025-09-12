@@ -51,7 +51,7 @@ namespace SDK
              */
             uint32_t getBpm() const
             {
-                return isDataValid() ? mData.getAsU32(Field::kBpm) : 0.0f;
+                return isDataValid() ? mData.getAsU32(Field::kBpm) : 0;
             }
 
             /**
