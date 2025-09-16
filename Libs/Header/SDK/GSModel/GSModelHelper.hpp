@@ -3,6 +3,8 @@
 
 #include "SDK/GSModel/GSModel.hpp"
 #include "SDK/GSModel/IGUIModel.hpp"
+
+// TODO: Remove from SDK link to user app files
 #include "GSModelEvents/S2GEvents.hpp"
 #include "GSModelEvents/G2SEvents.hpp"
 

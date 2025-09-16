@@ -13,6 +13,9 @@
 #include <cstdint>
 #include <vector>
 
+namespace SDK
+{
+
  /**
   * @struct TrackMapScreen
   * @brief Represents a track in the form of screen pixels for ease of display.
@@ -39,5 +42,7 @@ struct TrackMapScreen {
     uint8_t maxx; ///< Maximum X-coordinate on the screen.
     uint8_t maxy; ///< Maximum Y-coordinate on the screen.
 };
+
+} /* namespace SDK */
 
 #endif /* __TRACK_MAP_SCREEN_HPP */

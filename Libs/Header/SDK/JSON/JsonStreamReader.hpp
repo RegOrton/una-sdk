@@ -162,7 +162,7 @@ private:
     bool mIsValid;      ///< Validation status of the JSON buffer.
 };
 
-} /* namespace sdk */
+} /* namespace SDK */
 
 #endif /* __JSON_STREAM_READER_HPP */
 

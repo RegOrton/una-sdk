@@ -12,26 +12,25 @@
 #ifndef __SIMULATOR_KERNEL_BASE_HPP
 #define __SIMULATOR_KERNEL_BASE_HPP
 
-#include <cstdint>
 #include <cassert>
+#include <cstdint>
 #include <string>
 
 #include "SDK/Interfaces/IKernel.hpp"
-
-#include "SDK/Simulator/Kernel/Mock/Power.hpp"
-#include "SDK/Simulator/Kernel/Mock/Settings.hpp"
-#include "SDK/Simulator/Kernel/Mock/FileSystem.hpp"
-#include "SDK/Simulator/Kernel/Mock/SensorManager.hpp"
-#include "SDK/Simulator/Kernel/Mock/Backlight.hpp"
-#include "SDK/Simulator/Kernel/Mock/Buzzer.hpp"
-#include "SDK/Simulator/Kernel/Mock/Vibro.hpp"
-
 #include "SDK/SynchManager/SynchManager.hpp"
-#include "SDK/Simulator/Kernel/Mock/MockUserAppMemAllocator.hpp"
-#include "SDK/Simulator/Kernel/Mock/MockUserApp.hpp"
-#include "SDK/Simulator/Kernel/Mock/MockServiceControl.hpp"
 
 #include "SDK/Simulator/Sensors/ISensorCore.hpp"
+#include "SDK/Simulator/Kernel/Mock/Backlight.hpp"
+#include "SDK/Simulator/Kernel/Mock/Buzzer.hpp"
+#include "SDK/Simulator/Kernel/Mock/FileSystem.hpp"
+#include "SDK/Simulator/Kernel/Mock/MockServiceControl.hpp"
+#include "SDK/Simulator/Kernel/Mock/MockUserApp.hpp"
+#include "SDK/Simulator/Kernel/Mock/MockUserAppMemAllocator.hpp"
+#include "SDK/Simulator/Kernel/Mock/Power.hpp"
+#include "SDK/Simulator/Kernel/Mock/SensorManager.hpp"
+#include "SDK/Simulator/Kernel/Mock/Settings.hpp"
+#include "SDK/Simulator/Kernel/Mock/Vibro.hpp"
+
 
 namespace Simulator
 {

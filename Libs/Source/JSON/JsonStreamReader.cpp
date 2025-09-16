@@ -7,7 +7,7 @@
  ******************************************************************************
  */
 
-#include "SDK/JsonStreamReader.hpp"
+#include "SDK/JSON/JsonStreamReader.hpp"
 
 extern "C" {
 #include "core_json.h"
@@ -284,4 +284,4 @@ bool JsonStreamReader::getArrayLength(const char *query,
     return true;
 }
 
-} /* namespace sdk */
+} /* namespace SDK */

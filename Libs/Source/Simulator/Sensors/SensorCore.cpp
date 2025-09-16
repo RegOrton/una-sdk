@@ -3,10 +3,9 @@
 
 #include <assert.h>
 
-#define TAG                 "SensorCore"
-#define LOG_MODULE_PRX      TAG"::"
+#define LOG_MODULE_PRX      "SensorCore::"
 #define LOG_MODULE_LEVEL    LOG_LEVEL_DEBUG
-#include "Logger.h"
+#include "SDK\UnaLogger\Logger.h"
 
 Sensor::Core::Core()
 	/*: mDS18B20()
