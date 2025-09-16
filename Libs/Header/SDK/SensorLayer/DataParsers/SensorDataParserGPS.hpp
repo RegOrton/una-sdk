@@ -51,11 +51,11 @@ namespace SDK
 
             /**
              * @brief Check if datais valid
-             * @return true if data length is Field::kCount
+             * @return true if data length is Field::COUNT
              */
             bool isDataValid() const
             {
-                return (mData != nullptr) && (mData->getLength() == Field::kCount);
+                return (mData != nullptr) && (mData->getLength() == Field::COUNT);
             }
 
             /**
@@ -64,7 +64,7 @@ namespace SDK
              */
             uint32_t getMask() const
             {
-                return mData->getAsU32(Field::kMask);
+                return isDataValid() ? mData->getAsU32(Field::MASK) : 0;
             }
 
             /**
@@ -73,7 +73,7 @@ namespace SDK
              */
             bool isTimeValid() const
             {
-                return ((mData->getAsU32(Field::kMask) & mMaskTime) != 0) && isDataValid();
+                return (isDataValid() && (mData->getAsU32(Field::MASK) & mMaskTime) != 0);
             }
 
             /**
@@ -82,7 +82,7 @@ namespace SDK
              */
             uint32_t getTime() const
             {
-                return mData->getAsU32(Field::kTime);
+                return mData->getAsU32(Field::TIME);
             }
 
             /**
@@ -91,7 +91,7 @@ namespace SDK
              */
             bool isCoordinatesValid() const
             {
-                return ((mData->getAsU32(Field::kMask) & mMaskCoords) != 0) && isDataValid();
+                return (isDataValid() && (mData->getAsU32(Field::MASK) & mMaskLocation) != 0);
             }
 
             /**
@@ -102,9 +102,9 @@ namespace SDK
              */
             void getCoordinates(float& lat, float& lon, float& alt) const
             {
-                lat = mData->getAsFloat(Field::kLat);
-                lon = mData->getAsFloat(Field::kLon);
-                alt = mData->getAsFloat(Field::kAlt);
+                lat = mData->getAsFloat(Field::LAT);
+                lon = mData->getAsFloat(Field::LON);
+                alt = mData->getAsFloat(Field::ALT);
             }
 
             /**
@@ -113,7 +113,7 @@ namespace SDK
              */
             float getLatitude() const
             {
-                return mData->getAsFloat(Field::kLat);
+                return mData->getAsFloat(Field::LAT);
             }
 
             /**
@@ -122,7 +122,7 @@ namespace SDK
              */
             float getLongitude() const
             {
-                return mData->getAsFloat(Field::kLon);
+                return mData->getAsFloat(Field::LON);
             }
 
             /**
@@ -131,7 +131,7 @@ namespace SDK
              */
             float getAltitude() const
             {
-                return mData->getAsFloat(Field::kAlt);
+                return mData->getAsFloat(Field::ALT);
             }
 
             /**
@@ -140,7 +140,7 @@ namespace SDK
              */
             bool isSpeedValid() const
             {
-                return ((mData->getAsU32(Field::kMask) & mMaskSpeed) != 0) && isDataValid();
+                return ((mData->getAsU32(Field::MASK) & mMaskSpeed) != 0) && isDataValid();
             }
 
             /**
@@ -149,7 +149,7 @@ namespace SDK
              */
             float getSpeed() const
             {
-                return mData->getAsFloat(Field::kSpeed);
+                return mData->getAsFloat(Field::SPEED);
             }
 
             /**
@@ -167,27 +167,27 @@ namespace SDK
              */
             static constexpr uint8_t getFieldsNumber()
             {
-                return Field::kCount;
+                return Field::COUNT;
             }
 
-        private:
+            static constexpr uint8_t mMaskTime     = 0x01;
+            static constexpr uint8_t mMaskLocation = 0x02;
+            static constexpr uint8_t mMaskSpeed    = 0x04;
+
             /**
              * @brief Field layout indices
              */
             enum Field : uint8_t {
-                kMask = 0,  ///< Bitmask field (uint32_t)
-                kTime,      ///< Timestamp (uint32_t)
-                kLat,       ///< Latitude (float)
-                kLon,       ///< Longitude (float)
-                kAlt,       ///< Altitude (float)
-                kSpeed,     ///< Speed (float)
-                kCount      ///< Total number of fields
+                MASK = 0,  ///< Bitmask field (uint32_t)
+                TIME,      ///< Timestamp (uint32_t)
+                LAT,       ///< Latitude (float)
+                LON,       ///< Longitude (float)
+                ALT,       ///< Altitude (float)
+                SPEED,     ///< Speed (float)
+                COUNT      ///< Total number of fields
             };
 
-            static constexpr uint8_t mMaskTime   = 0x01;
-            static constexpr uint8_t mMaskCoords = 0x02;
-            static constexpr uint8_t mMaskSpeed  = 0x04;
-
+        private:
             const SDK::Interface::ISensorData* mData;
         }; /* class GPS */
     }; /* namespace SensorDataParser */
