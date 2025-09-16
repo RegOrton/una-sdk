@@ -14,7 +14,10 @@
 #include <vector>
 #include <memory>
 
-#include "TrackMapScreen.hpp"
+#include "SDK/TrackMap/TrackMapScreen.hpp"
+
+namespace SDK
+{
 
 /**
  * @class TrackMapBuilder
@@ -271,5 +274,7 @@ private:
             const GpsPoint &min, const GpsPoint &max, const float &maxDistance);
 
 };
+
+} /* namespace SDK */
 
 #endif /* __TRACK_MAP_BUILDER_HPP */

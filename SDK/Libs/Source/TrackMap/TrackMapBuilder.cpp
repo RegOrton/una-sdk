@@ -10,8 +10,10 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-#include "SDK/TrackMapBuilder.hpp"
+#include "SDK/TrackMap/TrackMapBuilder.hpp"
 
+namespace SDK
+{
 
 TrackMapBuilder::TrackMapBuilder(size_t expectedPointsNum)
 {
@@ -315,3 +317,5 @@ TrackMapScreen TrackMapBuilder::buildFromRaw(
 
     return map;
 }
+
+} /* namespace SDK */
