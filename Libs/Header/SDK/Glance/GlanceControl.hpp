@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file    Glance.hpp
+ * @file    GlanceControl.hpp
  * @date    18-September-2025
  * @author  Oleksandr Tymoshenko <oleksandr.tymoshenko@droid-technologies.com>
  * @brief   API for use in Glance applications
@@ -10,8 +10,8 @@
  ******************************************************************************
  */
 
-#ifndef __GLANCE_HPP
-#define __GLANCE_HPP
+#ifndef __GLANCE_CONTROL_HPP
+#define __GLANCE_CONTROL_HPP
 
 #include <cstdint>
 #include <cstdbool>
@@ -47,19 +47,14 @@ namespace SDK::Glance {
         POPPINS_MEDIUM_10,
         POPPINS_MEDIUM_18,
         POPPINS_MEDIUM_25,
-        POPPINS_MEDIUM_50,
-        POPPINS_MEDIUM_60,
         POPPINS_SEMIBOLD_18,
         POPPINS_SEMIBOLD_20,
         POPPINS_SEMIBOLD_25,
         POPPINS_SEMIBOLD_30,
         POPPINS_SEMIBOLD_35,
-        POPPINS_SEMIBOLD_40,
-        POPPINS_SEMIBOLD_60,
         POPPINS_ITALIC_18,
         POPPINS_ITALIC_20,
         POPPINS_LIGHTITALIC_18,
-        POPPINS_LIGHT_60,
     };
 
     class Point {
@@ -160,7 +155,7 @@ namespace SDK::Glance {
     };
 
     struct Line {
-        Point   start{};
+        Point   pos{};
         Point   stop{};
         uint8_t color = Color::WHITE;
     };
@@ -168,22 +163,51 @@ namespace SDK::Glance {
     struct Rectangle {
         Point   pos{};
         Size    size{};
-        uint8_t color           = Color::WHITE; // Color Line
-        uint8_t colorBackground = Color::BLACK;
-        bool    transparent     = false;
+        uint8_t color   = Color::WHITE; // Color Line
+        uint8_t bgColor = Color::BLACK;
+        bool    fill    = false;
     };
 
-    using Data = std::variant<std::monostate, Text, Image, Line, Rectangle>;
+    using Data = std::variant<Text, Image, Line, Rectangle>;
 
-    class Tile {
+    class Control {
     public:
-        Tile() : data(Text{ {}, "", Font::POPPINS_REGULAR_18, Color::WHITE })
+        Control()
+            : mData(Text{})
+            , mID(0)
+            , mValid(false)
         {}
 
-        Data data;
+        const Data& data()
+        {
+            return mData;
+        }
 
-        // --- Full "emplace" setters (init all important fields at once) ---
-        Tile& setText(Point pos, const char* s, Font fontID, uint8_t color)
+        void setID(uint8_t id)
+        {
+            mID = id;
+        }
+
+        uint8_t getID()
+        {
+            return mID;
+        }
+
+        void validate()
+        {
+            mValid = true;
+        }
+
+        bool isValid() const
+        {
+            return mValid;
+        }
+
+        ///////////////////////////////////////
+        //// Full "emplace"
+        ///////////////////////////////////////
+
+        Control& createText(Point pos, const char* s, Font fontID, uint8_t color)
         {
             Text t;
 
@@ -192,116 +216,107 @@ namespace SDK::Glance {
             t.color  = color;
             t.set(s);
 
-            data = t;
+            mData = t;
+
+            invalidate();
 
             return *this;
         }
 
-        Tile& setImage(Point p, Size sz, const uint8_t* b)
+        Control& createImage(Point p, Size sz, const uint8_t* buff)
         {
-            data = Image{ p, sz, b };
+            mData = Image{ p, sz, buff };
+
+            invalidate();
 
             return *this;
         }
 
-        Tile& setLine(Point a, Point b, uint8_t color)
+        Control& createLine(Point a, Point b, uint8_t color)
         {
-            data = Line{ a, b, color };
+            mData = Line{ a, b, color };
+
+            invalidate();
 
             return *this;
         }
 
-        Tile& setRectangle(Point pos, Size size, uint8_t lineColor, uint8_t bgColor, bool transparent=false)
+        Control& createRectangle(Point   pos,
+                                 Size    size,
+                                 uint8_t lineColor,
+                                 uint8_t bgColor,
+                                 bool    fill=true)
         {
-            data = Rectangle{ pos, size, lineColor, bgColor, transparent };
+            mData = Rectangle{ pos, size, lineColor, bgColor, fill };
+
+            invalidate();
 
             return *this;
         }
 
-        // --- Fluent helpers to tweak geometry after type is chosen ---
-        /// @brief Set position depending on active type (ext/Image/Rectangle: pos).
-        Tile& at(Point pos)
-        {
-            std::visit([&](auto& v) {
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, Text> || std::is_same_v<T, Image> || std::is_same_v<T, Rectangle>) {
-                    v.pos = pos;
-                }
-              }, data);
+        ///////////////////////////////////////
+        //// Minimal "emplace"
+        ///////////////////////////////////////
 
-            return *this;
-        }
-
-        /// @brief Resize for types that have Size.
-        Tile& size(Size size)
-        {
-            std::visit([&](auto& v){
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, Image> || std::is_same_v<T, Rectangle>) {
-                    v.size = size;
-                }
-            }, data);
-
-            return *this;
-        }
-
-        /// @brief Update color
-        Tile& color(uint8_t color)
-        {
-            std::visit([&](auto& v){
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, Text> || std::is_same_v<T, Line> || std::is_same_v<T, Rectangle>) {
-                    v.color = color;
-                }
-            }, data);
-
-            return *this;
-        }
-
-        /// @brief Update color
-        Tile& bgColor(uint8_t color)
-        {
-            std::visit([&](auto& v){
-                using T = std::decay_t<decltype(v)>;
-                if constexpr (std::is_same_v<T, Rectangle>) {
-                    v.colorBackground = color;
-                }
-            }, data);
-
-            return *this;
-        }
-
-        /// @brief Toggle rectangle transparency.
-        Tile& setTransparent(bool t)
-        {
-            if (auto* v = std::get_if<Rectangle>(&data)) {
-                v->transparent = t;
-            }
-
-            return *this;
-        }
 
         // Minimal setText that only updates text on existing Text payload,
         // or creates a default Text once and preserves style/pos next time.
-        Tile& setText(const char* s)
+        Control& createText(const char* s = nullptr)
         {
             Text& t = ensureText();
 
             t.set(s);
 
+            invalidate();
+
             return *this;
         }
 
-        Tile& appendText(const char* s)
+        Control& createImage(const uint8_t* buff)
+        {
+            Image& image = ensureImage();
+
+            image.buff = buff;
+
+            invalidate();
+
+            return *this;
+        }
+
+        Control& createLine()
+        {
+            mData = ensureLine();
+
+            invalidate();
+
+            return *this;
+        }
+
+        Control& createRectangle()
+        {
+            mData = ensureRectangle();
+
+            invalidate();
+
+            return *this;
+        }
+
+        ///////////////////////////////////////
+        //// Fluent helpers
+        ///////////////////////////////////////
+
+        Control& appendText(const char* s)
         {
             Text& t = ensureText();
 
             t.append(s);
 
+            invalidate();
+
             return *this;
         }
 
-        Tile& printText(const char* fmt, ...)
+        Control& print(const char* fmt, ...)
         {
             Text& t = ensureText();
 
@@ -315,6 +330,109 @@ namespace SDK::Glance {
         #endif
             va_end(args);
 
+            invalidate();
+
+            return *this;
+        }
+
+        Control& font(Font fontID)
+        {
+            std::visit([&](auto& v) {
+                using T = std::decay_t<decltype(v)>;
+                if constexpr (std::is_same_v<T, Text>) {
+                    v.fontID = fontID;
+                }
+              }, mData);
+
+            invalidate();
+
+            return *this;
+        }
+
+        /// @brief Set position depending on active type (ext/Image/Rectangle: pos).
+        Control& at(Point pos)
+        {
+            std::visit([&](auto& v) {
+                using T = std::decay_t<decltype(v)>;
+                if constexpr (std::is_same_v<T, Text> || std::is_same_v<T, Image> || std::is_same_v<T, Rectangle>) {
+                    v.pos = pos;
+                }
+              }, mData);
+
+            invalidate();
+
+            return *this;
+        }
+
+        /// @brief Set position depending on active type (ext/Image/Rectangle: pos).
+        Control& to(Point stop)
+        {
+            std::visit([&](auto& v) {
+                using T = std::decay_t<decltype(v)>;
+                if constexpr (std::is_same_v<T, Line>) {
+                    v.stop = stop;
+                }
+              }, mData);
+
+            invalidate();
+
+            return *this;
+        }
+
+        /// @brief Resize for types that have Size.
+        Control& size(Size size)
+        {
+            std::visit([&](auto& v){
+                using T = std::decay_t<decltype(v)>;
+                if constexpr (std::is_same_v<T, Image> || std::is_same_v<T, Rectangle>) {
+                    v.size = size;
+                }
+            }, mData);
+
+            invalidate();
+
+            return *this;
+        }
+
+        /// @brief Update color
+        Control& color(uint8_t color)
+        {
+            std::visit([&](auto& v){
+                using T = std::decay_t<decltype(v)>;
+                if constexpr (std::is_same_v<T, Text> || std::is_same_v<T, Line> || std::is_same_v<T, Rectangle>) {
+                    v.color = color;
+                }
+            }, mData);
+
+            invalidate();
+
+            return *this;
+        }
+
+        /// @brief Update color
+        Control& bgColor(uint8_t color)
+        {
+            std::visit([&](auto& v){
+                using T = std::decay_t<decltype(v)>;
+                if constexpr (std::is_same_v<T, Rectangle>) {
+                    v.bgColor = color;
+                }
+            }, mData);
+
+            invalidate();
+
+            return *this;
+        }
+
+        /// @brief Set rectangle fill flag.
+        Control& fill(bool t = true)
+        {
+            if (auto* v = std::get_if<Rectangle>(&mData)) {
+                v->fill = t;
+            }
+
+            invalidate();
+
             return *this;
         }
 
@@ -322,25 +440,60 @@ namespace SDK::Glance {
         /// Ensure variant holds Text; if not, switch once to default Text.
         Text& ensureText()
         {
-            if (auto* t = std::get_if<Text>(&data)) {
+            if (auto* t = std::get_if<Text>(&mData)) {
                 return *t;
             }
 
-            data = Text{};
+            mData = Text{};
 
-            return std::get<Text>(data);
+            return std::get<Text>(mData);
         }
-    };
 
-//        std::vector<TileData> tiles;
-//        tiles.reserve(8); // не обов'язково, але корисно
-//
-//        tiles.emplace_back().setText("Hello", Font::Small, /*color*/ 0x2A);
-//        tiles.emplace_back().setLine({0,10}, {50,10}, /*color*/ 0x10);
-//        tiles.emplace_back().setRectangle({{5,5}}, {{40,20}}, /*line*/0x30, /*bg*/0x00);
-//        tiles.emplace_back().setImage(myIconPtr);
-//
-//        render(tiles); // передав кудись
+        /// Ensure variant holds Image; if not, switch once to default Image.
+        Image& ensureImage()
+        {
+            if (auto* t = std::get_if<Image>(&mData)) {
+                return *t;
+            }
+
+            mData = Image{};
+
+            return std::get<Image>(mData);
+        }
+
+        /// Ensure variant holds Image; if not, switch once to default Image.
+        Line& ensureLine()
+        {
+            if (auto* t = std::get_if<Line>(&mData)) {
+                return *t;
+            }
+
+            mData = Line{};
+
+            return std::get<Line>(mData);
+        }
+
+        /// Ensure variant holds Image; if not, switch once to default Image.
+        Rectangle& ensureRectangle()
+        {
+            if (auto* t = std::get_if<Rectangle>(&mData)) {
+                return *t;
+            }
+
+            mData = Rectangle{};
+
+            return std::get<Rectangle>(mData);
+        }
+
+        void invalidate()
+        {
+            mValid = false;
+        }
+
+        Data     mData;
+        uint32_t mID;
+        bool     mValid;
+    };
 }
 
 #endif
