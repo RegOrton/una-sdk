@@ -37,7 +37,7 @@ public:
      * @param controls Reference to the owning buffer.
      * @param idx      Index of the rectangle item in the buffer.
      */
-    ControlRectangle(std::vector<GlanceControl_t>& controls, std::size_t idx)
+    ControlRectangle(std::vector<GlanceControl_t>* controls, std::size_t idx)
         : Control(controls, idx)
     {}
 

@@ -15,18 +15,19 @@
 
 #include "SDK/Glance/GlanceControl.h"
 
-#include <cstdint>
-#include <cstdbool>
-#include <cstdio>
-#include <cstdarg>
-#include <cstring>
+#include <vector>
 #include <stdlib.h>
 
 namespace SDK::Glance {
 
     class Control {
     public:
-        Control(std::vector<GlanceControl_t>& controls, std::size_t idx)
+        Control()
+            : mControls(nullptr)
+            , mIndex()
+        {}
+
+        Control(std::vector<GlanceControl_t>* controls, std::size_t idx)
             : mControls(controls)
             , mIndex(idx)
         {}
@@ -41,11 +42,11 @@ namespace SDK::Glance {
     protected:
         GlanceControl_t& control() noexcept
         {
-            return mControls[mIndex];
+            return mControls->at(mIndex);
         }
 
     private:
-        std::vector<GlanceControl_t>& mControls;
+        std::vector<GlanceControl_t>* mControls;
         std::size_t                   mIndex;
     };
 

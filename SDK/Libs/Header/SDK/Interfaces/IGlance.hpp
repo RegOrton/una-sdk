@@ -24,8 +24,8 @@ namespace SDK::Interface {
     public:
         virtual ~IGlance() = default;
 
-        virtual GlanceControl_t& glanceGetControls(uint8_t& count) = 0;
-        virtual void             glanceUpdateControls()            = 0;
+        virtual GlanceControl_t* glanceGetControls(uint8_t& count) = 0;
+        virtual void             glanceUpdate()                    = 0;
         virtual void             glanceClose()                     = 0;
     };
 
