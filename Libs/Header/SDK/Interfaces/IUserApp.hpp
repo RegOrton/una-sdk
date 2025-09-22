@@ -29,8 +29,18 @@ namespace SDK::Interface
  * handling display output, and processing user input events.
  */
 class IUserApp {
-
 public:
+
+    struct GlanceArea {
+        uint16_t w;
+        uint16_t h;
+    };
+
+    enum class LaunchReason {
+        AUTO_START,
+        MENU,
+        GLANCE
+    };
 
     /**
      * @brief Callback interface for application lifecycle events.
@@ -271,6 +281,17 @@ public:
      */
     virtual void unLock() = 0;
 
+    /**
+     * @brief Returns the glance area that is available for userapp
+     *
+     */
+    virtual struct GlanceArea getGlanceArea() = 0;
+
+    /**
+     * @brief Returns the cause of the UserApp launch
+     *
+     */
+    virtual LaunchReason getLaunchReason() = 0;
 
 protected:
     /**

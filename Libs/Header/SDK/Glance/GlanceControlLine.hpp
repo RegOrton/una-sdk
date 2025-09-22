@@ -49,7 +49,7 @@ namespace SDK::Glance {
          * @param controls Reference to the owning vector of control records.
          * @param idx      Index of the line record inside @p controls.
          */
-        ControlLine(std::vector<GlanceControl_t>& controls, std::size_t idx)
+        ControlLine(std::vector<GlanceControl_t>* controls, std::size_t idx)
             : Control(controls, idx)
         {}
 

@@ -24,58 +24,62 @@
 
 namespace SDK::Glance {
 
-    GlancePoint_t align(GlancePoint_t  areaPos,
-                        GlanceSize_t   areaSize,
-                        GlanceSize_t   objSize,
-                        GlanceAlignH_t alignH,
-                        GlanceAlignV_t alignV)
-    {
-        // Signed deltas to avoid unsigned underflow
-        int32_t dx = (int32_t)areaSize.w - (int32_t)objSize.w;
-        int32_t dy = (int32_t)areaSize.h - (int32_t)objSize.h;
+    class Align {
+    public:
+        // Returns top-left (origin) for obj placed inside area with H/V alignment.
+        static GlancePoint_t placeWithin(GlancePoint_t  areaPos,
+                                         GlanceSize_t   areaSize,
+                                         GlanceSize_t   objSize,
+                                         GlanceAlignH_t alignH,
+                                         GlanceAlignV_t alignV)
+        {
+            // Signed deltas to avoid unsigned underflow
+            int32_t dx = (int32_t)areaSize.w - (int32_t)objSize.w;
+            int32_t dy = (int32_t)areaSize.h - (int32_t)objSize.h;
 
-        // Horizontal placement (X): LEFT/CENTER/RIGHT lives in alignH
-        int32_t offX;
-        switch (alignH) {
-            case GLANCE_ALIGN_H_LEFT:   offX = 0;      break;
-            case GLANCE_ALIGN_H_CENTER: offX = dx / 2; break;
-            case GLANCE_ALIGN_H_RIGHT:  offX = dx;     break;
-            default:                    offX = 0;      break;
+            // Horizontal placement (X): LEFT/CENTER/RIGHT lives in alignH
+            int32_t offX;
+            switch (alignH) {
+                case GLANCE_ALIGN_H_LEFT:   offX = 0;      break;
+                case GLANCE_ALIGN_H_CENTER: offX = dx / 2; break;
+                case GLANCE_ALIGN_H_RIGHT:  offX = dx;     break;
+                default:                    offX = 0;      break;
+            }
+
+            // Vertical placement (Y): TOP/CENTER/BOTTOM lives in alignV
+            int32_t offY;
+            switch (alignV) {
+                case GLANCE_ALIGN_V_TOP:    offY = 0;      break;
+                case GLANCE_ALIGN_V_CENTER: offY = dy / 2; break;
+                case GLANCE_ALIGN_V_BOTTOM: offY = dy;     break;
+                default:                    offY = 0;      break;
+            }
+
+            // Clamp negatives to avoid underflow when object is larger than area
+            if (offX < 0) {
+                offX = 0;
+            }
+
+            if (offY < 0) {
+                offY = 0;
+            }
+
+            uint32_t x = (uint32_t)areaPos.x + (uint32_t)offX;
+            uint32_t y = (uint32_t)areaPos.y + (uint32_t)offY;
+
+            if (x > 0xFFFFu) {
+                x = 0xFFFFu;
+            }
+
+            if (y > 0xFFFFu) {
+                y = 0xFFFFu;
+            }
+
+            GlancePoint_t pos = { static_cast<uint16_t>(x), static_cast<uint16_t>(y) };
+
+            return pos;
         }
-
-        // Vertical placement (Y): TOP/CENTER/BOTTOM lives in alignV
-        int32_t offY;
-        switch (alignV) {
-            case GLANCE_ALIGN_V_TOP:    offY = 0;      break;
-            case GLANCE_ALIGN_V_CENTER: offY = dy / 2; break;
-            case GLANCE_ALIGN_V_BOTTOM: offY = dy;     break;
-            default:                    offY = 0;      break;
-        }
-
-        // Clamp negatives to avoid underflow when object is larger than area
-        if (offX < 0) {
-            offX = 0;
-        }
-
-        if (offY < 0) {
-            offY = 0;
-        }
-
-        uint32_t x = (uint32_t)areaPos.x + (uint32_t)offX;
-        uint32_t y = (uint32_t)areaPos.y + (uint32_t)offY;
-
-        if (x > 0xFFFFu) {
-            x = 0xFFFFu;
-        }
-
-        if (y > 0xFFFFu) {
-            y = 0xFFFFu;
-        }
-
-        GlancePoint_t pos = { static_cast<uint16_t>(x), static_cast<uint16_t>(y) };
-
-        return pos;
-    }
+    };
 
     /**
      * @brief Builder/container for a contiguous list of Glance controls.
@@ -100,11 +104,17 @@ namespace SDK::Glance {
          * The constructor reserves space for 16 elements to reduce early reallocations.
          * Capacity will grow automatically as needed on subsequent appends.
          */
-        explicit Form() noexcept
+        explicit Form(uint16_t w, uint16_t h) noexcept
             : mControls{}
+            , mWidth(w)
+            , mHeight(h)
+
         {
             mControls.reserve(16);
         }
+
+        uint16_t getWidth()     { return mWidth;  }
+        uint16_t getHeight()    { return mHeight; }
 
         /**
          * @brief Current number of controls stored in the form.
@@ -130,25 +140,25 @@ namespace SDK::Glance {
          * @brief Appends a new TEXT control and returns a typed view for configuration.
          * @return A lightweight `ControlText` view bound to the newly appended record.
          */
-        ControlText createText()  { return ControlText(mControls, append(GLANCE_TYPE_TEXT));      }
+        ControlText createText()  { return ControlText(&mControls, append(GLANCE_TYPE_TEXT)); }
 
         /**
          * @brief Appends a new IMAGE control and returns a typed view for configuration.
          * @return A lightweight `ControlImage` view bound to the newly appended record.
          */
-        ControlImage createImage() { return ControlImage(mControls, append(GLANCE_TYPE_IMAGE));    }
+        ControlImage createImage() { return ControlImage(&mControls, append(GLANCE_TYPE_IMAGE)); }
 
         /**
          * @brief Appends a new LINE control and returns a typed view for configuration.
          * @return A lightweight `ControlLine` view bound to the newly appended record.
          */
-        ControlLine createLine()  { return ControlLine(mControls, append(GLANCE_TYPE_LINE));      }
+        ControlLine createLine()  { return ControlLine(&mControls, append(GLANCE_TYPE_LINE)); }
 
         /**
          * @brief Appends a new RECT control and returns a typed view for configuration.
          * @return A lightweight `ControlRectangle` view bound to the newly appended record.
          */
-        ControlRectangle createRect()  { return ControlRectangle(mControls, append(GLANCE_TYPE_RECT)); }
+        ControlRectangle createRect()  { return ControlRectangle(&mControls, append(GLANCE_TYPE_RECT)); }
 
     private:
         /**
@@ -174,6 +184,9 @@ namespace SDK::Glance {
 
         /** @brief Contiguous storage of control records owned by this form. */
         std::vector<GlanceControl_t> mControls;
+        uint16_t                     mWidth;
+        uint16_t                     mHeight;
+
     };
 
 }

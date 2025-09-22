@@ -48,7 +48,7 @@ namespace SDK::Glance {
          * @param controls Reference to the owning vector of control records.
          * @param idx      Index of the image record inside @p controls.
          */
-        ControlImage(std::vector<GlanceControl_t>& controls, std::size_t idx)
+        ControlImage(std::vector<GlanceControl_t>* controls, std::size_t idx)
             : Control(controls, idx)
         {}
 

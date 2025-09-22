@@ -42,13 +42,17 @@ namespace SDK::Glance {
      */
     class ControlText : public Control {
     public:
+        ControlText()
+            : Control(nullptr, 0)
+        {}
+
         /**
          * @brief Binds this view to an existing control record.
          *
          * @param controls Reference to the owning vector of control records.
          * @param idx      Index of the text record inside @p controls.
          */
-        ControlText(std::vector<GlanceControl_t>& controls, std::size_t idx)
+        ControlText(std::vector<GlanceControl_t>* controls, std::size_t idx)
             : Control(controls, idx)
         {}
 
