@@ -19,6 +19,8 @@
 
 #include <cstdint>
 
+#include "SDK/Interfaces/IGlance.hpp"
+
 namespace SDK::Interface
 {
 
@@ -38,8 +40,7 @@ public:
 
     enum class LaunchReason {
         AUTO_START,
-        MENU,
-        GLANCE
+        ON_DEMAND
     };
 
     /**
@@ -107,6 +108,15 @@ public:
      * @param pCallback Pointer to the lifecycle callback implementation.
      */
     virtual void registerApp(Interface::IUserApp::Callback *pCallback) = 0;
+
+    /**
+     * @brief Registers a glance interface
+     *
+     * If the application can act as a glance it should to registry its glance interface
+     *
+     * @param glance Pointer to the Glance interface
+     */
+    virtual void registerGlance(SDK::Interface::IGlance* glance) = 0;
 
     /**
      * @brief Confirms that the application has completed initialization.
