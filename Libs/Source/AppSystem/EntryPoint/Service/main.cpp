@@ -39,11 +39,23 @@ static void LoggerPrint(const char* str)
 
 int main()
 {
+    ///////////////////////////
+    //// Build the kernel
+    ///////////////////////////
+
     SDK::Kernel kernel = SDK::KernelBuilder::make();
     SDK::KernelProviderService::CreateInstance(&kernel);
 
+    ///////////////////////////
+    //// Init logger
+    ///////////////////////////
+
     Logger_init(LoggerPrint);
     Logger_setTimeFunc(LoggerGetTicks);
+
+    ///////////////////////////
+    //// Start
+    ///////////////////////////
 
     SDK::Service::Bootstrap bootstrap;
     bootstrap.run();
