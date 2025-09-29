@@ -60,6 +60,20 @@ extern void (*__fini_array_end[])       (void) __attribute__((weak));
 extern "C" {
 
     /**
+     * @brief   Platform-specific final termination path.
+     * @details Logs and notifies kernel via C++ adapter, then halts.
+     * @param   status Exit status code.
+     * @note    Marked @c noreturn.
+     */
+    __attribute__((noreturn)) void exitA(int status)
+    {
+        kernel->app.log("exit %d\n", status);
+        kernel->app.exit(status);
+
+        for (;;) { /* stop */ }
+    }
+
+    /**
      * @brief  Sanity-check kernel pointer and interface version.
      * @details Verifies that @ref kernel is patched (not equal to @c DUMMY_KERNEL_ADDR)
      *          and that the interface version matches @c KERNEL_INTERFACE_VERSION.
@@ -71,7 +85,7 @@ extern "C" {
         }
 
         if (kernel->version != KERNEL_INTERFACE_VERSION) {
-            exit(-4);
+            exitA(-4);
         }
     }
 
@@ -316,20 +330,6 @@ extern "C" {
     __attribute__((noreturn)) void abort(void)
     {
         exit(-1);
-    }
-
-    /**
-     * @brief   Platform-specific final termination path.
-     * @details Logs and notifies kernel via C++ adapter, then halts.
-     * @param   status Exit status code.
-     * @note    Marked @c noreturn.
-     */
-    __attribute__((noreturn)) void exitA(int status)
-    {
-        kernel->app.log("exit %d\n", status);
-        kernel->app.exit(status);
-
-        for (;;) { /* stop */ }
     }
 
     /**

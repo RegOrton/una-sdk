@@ -11,6 +11,7 @@
 
 #include "SDK/Kernel/KernelProviderService.hpp"
 #include "SDK/Kernel/KernelBuilder.hpp"
+#include "SDK/AppSystem/SvcBootstrap.hpp"
 #include "SDK/AppSystem/UserAppEntry.hpp"
 #include "Service.hpp"
 
@@ -44,8 +45,8 @@ int main()
     Logger_init(LoggerPrint);
     Logger_setTimeFunc(LoggerGetTicks);
 
-    Service service;
-    service.run();
+    SDK::Service::Bootstrap bootstrap;
+    bootstrap.run();
 
     return 0;
 }
