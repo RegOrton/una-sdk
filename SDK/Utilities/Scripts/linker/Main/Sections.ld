@@ -9,7 +9,7 @@ MEMORY
   RAM (xrw) : ORIGIN = 0x20000000,  LENGTH = RAM_LENGTH
 }
 
-/* === ДОДАНО: два програмні сегменти ===
+/* === ADDED: two program segments ===
    text  -> RX (PF_R|PF_X = 5)
    data  -> RW (PF_R|PF_W = 6) */
 PHDRS
@@ -21,7 +21,7 @@ PHDRS
 /* Sections */
 SECTIONS
 {
-  /* Код + RO-секції -> сегмент :text */
+  /* Code + RO sections -> segment :text */
   .text :
   {
     . = ALIGN(4);
@@ -33,18 +33,18 @@ SECTIONS
     /* ARM unwind tables (RO) */
     *(.ARM.extab* .gnu.linkonce.armextab.*)
     __exidx_start = .;
-    *(.ARM.exidx*)               /* було: *(.ARM.exidx) */
-    *(.gnu.linkonce.armexidx.*)  /* опційно, для сумісності */
+    *(.ARM.exidx*)               /* was: *(.ARM.exidx) */
+    *(.gnu.linkonce.armexidx.*)  /* optional, for compatibility */
     __exidx_end = .;
 
-    *(.RamFunc) *(.RamFunc*)   /* якщо це код у RAM — теж RX */
+    *(.RamFunc) *(.RamFunc*)   /* if this is code in RAM — still RX */
 
     KEEP (*(.init))
     KEEP (*(.fini))
 
     *(.rodata) *(.rodata*)
 
-    /* TouchGFX RO-секції */
+    /* TouchGFX RO sections */
     *(FontFlashSection)
     *(FontSearchFlashSection)
     *(TextFlashSection)
@@ -52,7 +52,7 @@ SECTIONS
 
     . = ALIGN(4);
     _etext = .;
-  } > RAM :text    /* <=== прив’язка до RX-сегмента */
+  } > RAM :text    /* <=== attach to RX segment */
 
   .preinit_array (READONLY) :
   {
@@ -83,7 +83,7 @@ SECTIONS
     . = ALIGN(4);
   } > RAM :text
 
-  /* PLT — код переходів -> RX */
+  /* PLT — trampolines -> RX */
   .plt :
   {
     . = ALIGN(4);
@@ -94,7 +94,7 @@ SECTIONS
   /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
-  /* Дані -> RW сегмент :data */
+  /* Data -> RW segment :data */
   .data :
   {
     . = ALIGN(4);
@@ -144,6 +144,6 @@ SECTIONS
     libgcc.a ( * )
   }
 
-  /* атрибути — теж у :text, щоб не створювати третій LOAD */
+  /* attributes — also into :text to avoid creating a third LOAD */
   .ARM.attributes 0 : { *(.ARM.attributes) } :text
 }
