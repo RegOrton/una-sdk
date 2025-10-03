@@ -1,78 +1,77 @@
-#ifndef __GSMODEL_HPP
-#define __GSMODEL_HPP
+/**
+ ******************************************************************************
+ * @file    GSModel.hpp
+ * @date    25-September-2025
+ * @author  Oleksandr Tymoshenko <oleksandr.tymoshenko@droid-technologies.com>
+ * @brief   RAII facade for GUI↔Service bridge.
+ *
+ * @details Owns the underlying GSBridge and registers it in kernel.sctrl on
+ *          construction. Exposes thin, intention-revealing proxies for:
+ *            • checkG2SEvents() — poll GUI->Service and dispatch to Service
+ *            • checkS2GEvents() — poll Service->GUI and dispatch to GUI
+ *            • sendToService()  — enqueue GUI->Service event
+ *            • sendToGUI()      — enqueue Service->GUI event
+ ******************************************************************************
+ */
 
-#include "SDK/GSModel/IGUIModel.hpp"
-#include "SDK/CircularBuffer.hpp"
+#ifndef __GS_MODEL_HPP
+#define __GS_MODEL_HPP
 
-#include <type_traits>
-#include <variant>
+#include "SDK/GSModel/GSBridge.hpp"
+#include "SDK/Kernel/KernelProviderService.hpp"
 
-// Шаблон класу, але дозволені тільки ці 2 типи
-template<typename S2G, typename G2S, typename SH, typename GH>
-class GSModel : public IGUIModel<G2S, GH>
+/**
+ * @brief Thin facade that registers and proxies a GUI <-> Service bridge.
+ *
+ * @details This class centralizes registration in kernel.sctrl and forwards
+ *          calls to the underlying implementation. It does not manage queues
+ *          or dispatching logic itself.
+ */
+class GSModel
 {
 public:
-    GSModel(const IKernel& kernel, SH& handler)
-        : mServiceKernel(kernel)
-        , mS2GQueue(kernel)
-        , mG2SQueue(kernel)
-        , mServiceHandler(handler)
+    /**
+     * @brief Construct the facade and register the bridge in sctrl.
+     * @param serviceHandler Service-side event handler.
+     *
+     * Retrieves the Service kernel via
+     * SDK::KernelProviderService::GetInstance().getKernel(), creates the
+     * underlying bridge, and registers it in kernel.sctrl.
+     */
+    GSModel(IServiceModelHandler& serviceHandler)
+        : mGSBridge(std::make_shared<GSBridge>(serviceHandler))
     {
-        mS2GQueue.init();
-        mG2SQueue.init();
+        auto& kernel = SDK::KernelProviderService::GetInstance().getKernel();
+
+        kernel.sctrl.setContext(mGSBridge);
     }
 
-    ~GSModel() override = default;
-
-    // GUI -> Service
-    void checkG2SEvents(uint32_t timeout = 1000)
+    /**
+     * @brief Poll GUI->Service events and dispatch to the Service handler.
+     * @param timeout Wait time in milliseconds (default: 1000).
+     *
+     * @sa GSBridge::checkG2SEvents()
+     */
+    void process(uint32_t timeout = 1000)
     {
-        G2S data{};
-
-        mServiceKernel.app.unLock();
-        bool status = mG2SQueue.pop(data, timeout);
-        mServiceKernel.app.lock();
-
-        if (!status) return;
-
-        std::visit([this](const auto& event) {
-            mServiceHandler.handleEvent(event);
-        }, data);
+        mGSBridge->checkG2SEvents(timeout);
     }
 
-    bool sendToService(const G2S& data) override
+    /**
+     * @brief Enqueue a Service->GUI (S2G) event.
+     * @param data Event payload.
+     * @retval true  Event enqueued.
+     * @retval false Queue is full.
+     *
+     * @sa GSBridge::sendToGUI()
+     */
+    bool post(const S2GEvent::Data& data)
     {
-        return mG2SQueue.push(data);
-    }
-
-    // Service -> GUI
-    void checkS2GEvents(uint32_t timeout = 0) override
-    {
-        S2G data{};
-
-        this->mGUIKernel->app.unLock();
-        bool status = mS2GQueue.pop(data, timeout);
-        this->mGUIKernel->app.lock();
-
-        if (!status) return;
-
-        if (this->mGUIHandler) {
-            std::visit([this](const auto& event) {
-                this->mGUIHandler->handleEvent(event);
-            }, data);
-        }
-    }
-
-    bool sendToGUI(const S2G& data)
-    {
-        return mS2GQueue.push(data);
+        return mGSBridge->sendToGUI(data);
     }
 
 private:
-    const IKernel&          mServiceKernel;
-    CircularBuffer<S2G, 20> mS2GQueue;
-    CircularBuffer<G2S, 20> mG2SQueue;
-    SH&                     mServiceHandler;
+    std::shared_ptr<GSBridge> mGSBridge;
 };
 
-#endif // __MODEL_HPP
+#endif // __GS_MODEL_HPP

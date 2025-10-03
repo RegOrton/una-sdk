@@ -12,7 +12,7 @@
 #ifndef __CIRCULAR_BUFFER_HPP
 #define __CIRCULAR_BUFFER_HPP
 
-#include "SDK/Interfaces/IKernel.hpp"
+#include "SDK/Kernel/Kernel.hpp"
 
 #include <array>
 #include <memory>
@@ -22,7 +22,7 @@ class CircularBuffer {
 public:
     using ValueType = T;
 
-    CircularBuffer(const IKernel& kernel)
+    CircularBuffer(const SDK::Kernel& kernel)
         : mKernel(kernel)
         , mMutex{}
         , mNotEmpty{}
@@ -290,7 +290,7 @@ public:
     }
 
 private:
-    const IKernel&                              mKernel;
+    const SDK::Kernel&                          mKernel;
     std::shared_ptr<SDK::Interface::IMutex>     mMutex;
     std::shared_ptr<SDK::Interface::ISemaphore> mNotEmpty;
     std::shared_ptr<SDK::Interface::ISemaphore> mNotFull;
