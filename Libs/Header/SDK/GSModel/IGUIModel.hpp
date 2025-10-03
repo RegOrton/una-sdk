@@ -1,50 +1,77 @@
-#ifndef __IMODEL_HPP__
-#define __IMODEL_HPP__
+/**
+ ******************************************************************************
+ * @file    IGUIModel.hpp
+ * @date    29-September-2025
+ * @author  Oleksandr Tymoshenko
+ * @brief   GUI↔Service model interface (non-templated).
+ *
+ * @details Defines a minimal interface mediating data flow between a GUI task
+ *          and a Service task in two directions:
+ *            • GUI→Service (G2S): payload type is @c G2SEvent::Data
+ *            • Service→GUI (S2G): payload type is @c S2GEvent::Data
+ *
+ *          Implementations keep non-owning pointers to the GUI kernel facade
+ *          and the GUI handler, both of which are provided via
+ *          @ref IGUIModel::setGUIHandler and must outlive any calls to
+ *          @ref IGUIModel::checkS2GEvents.
+ ******************************************************************************
+ */
 
-#include "SDK/Interfaces/IKernel.hpp"
+#ifndef __I_GUI_MODEL_HPP__
+#define __I_GUI_MODEL_HPP__
+
+#include "SDK/Kernel/Kernel.hpp"
+#include "GSModelEvents/S2GEvents.hpp"
+#include "GSModelEvents/G2SEvents.hpp"
 #include <variant>
 #include <string>
 #include <stdint.h>
 
-// Templated interface:
-//  G2S — тип подій GUI->Service (те, що надсилаємо в sendToService)
-//  GH  — тип обробника подій на GUI-боці (handler інтерфейс)
-template<typename G2S, typename GH>
+/**
+ * @brief Interface for bridging GUI and Service layers.
+ *
+ * @details Declares the minimal API required by GUI-side code to:
+ *          - bind GUI context (kernel + handler),
+ *          - poll and dispatch Service→GUI events,
+ *          - send GUI→Service events.
+ *
+ * @note    Thread-safety and dispatch semantics (e.g., one event per call vs.
+ *          draining) are implementation-defined.
+ */
 class IGUIModel {
 public:
-    IGUIModel();
-    virtual ~IGUIModel();
+    /**
+     * @brief Default constructor.
+     */
+    IGUIModel() = default;
 
-    void setGUIHandler(const IKernel* kernel, GH* handler);
+    virtual ~IGUIModel() = default;
 
-    // Обробка черги Service->GUI (S2G) — сигнатура лишається віртуальною
-    virtual void checkS2GEvents(uint32_t timeout = 0) = 0;
+    /**
+     * @brief Bind the GUI kernel facade and the GUI-side handler.
+     * @param kernel  Pointer to the GUI kernel facade (non-owning).
+     * @param handler Pointer to the GUI handler implementation (non-owning).
+     *
+     * @pre  @p kernel and (if non-null) @p handler must remain valid for as long
+     *       as @ref checkS2GEvents may be invoked.
+     */
+    virtual void setGUIHandler(const SDK::Kernel* kernel, IGUIModelHandler* handler) = 0;
 
-    // Надсилання даних GUI->Service (G2S) — тепер тип параметра шаблонний
-    virtual bool sendToService(const G2S& data) = 0;
+    /**
+     * @brief Poll and dispatch pending Service→GUI (S2G) events.
+     * @param timeout Optional wait time in milliseconds for event availability.
+     *                Exact blocking/draining behavior is defined by the
+     *                concrete implementation.
+     */
+    virtual void process(uint32_t timeout = 0) = 0;
 
-protected:
-    GH*            mGUIHandler;   // шаблонний тип хендлера
-    const IKernel* mGUIKernel;    // ядро GUI-шару
+    /**
+     * @brief Send a GUI→Service (G2S) message.
+     * @param data Payload to be delivered to the Service side.
+     * @retval true  The message was queued/sent successfully.
+     * @retval false The message could not be queued (e.g., queue full).
+     */
+    virtual bool post(const G2SEvent::Data& data) = 0;
 };
 
-// ---------- Implementation (must stay in header for templates) ----------
-
-template<typename G2S, typename GH>
-IGUIModel<G2S, GH>::IGUIModel()
-    : mGUIHandler(nullptr)
-    , mGUIKernel(nullptr)
-{}
-
-template<typename G2S, typename GH>
-IGUIModel<G2S, GH>::~IGUIModel() = default;
-
-template<typename G2S, typename GH>
-void IGUIModel<G2S, GH>::setGUIHandler(const IKernel* kernel, GH* handler)
-{
-    mGUIKernel  = kernel;
-    mGUIHandler = handler;
-}
-
-#endif // __IMODEL_HPP__
-
+#endif // __I_GUI_MODEL_HPP__
