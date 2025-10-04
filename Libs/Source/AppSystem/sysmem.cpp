@@ -39,6 +39,10 @@
 #include "SDK/AppSystem/AtExitImpl.hpp"
 #include "SDK/Interfaces/IKernel.hpp"
 
+#define LOG_MODULE_PRX      "system"
+#define LOG_MODULE_LEVEL    LOG_LEVEL_ERROR
+#include "SDK/UnaLogger/Logger.h"
+
 /**
  * @brief  Global kernel pointer placed into a dedicated section for patching.
  * @details The value is initialized with @c DUMMY_KERNEL_ADDR and must be patched
@@ -67,7 +71,7 @@ extern "C" {
      */
     __attribute__((noreturn)) void exitA(int status)
     {
-        kernel->app.log("exit %d\n", status);
+        LOG_DEBUG("exit %d\n", status);
         kernel->app.exit(status);
 
         for (;;) { /* stop */ }
@@ -154,7 +158,7 @@ extern "C" {
      */
     void* _sbrk(ptrdiff_t incr)
     {
-        kernel->app.log("_sbrk %d\n", (int)incr);
+        LOG_ERROR("_sbrk %d\n", (int)incr);
         assert(0 && "_sbrk must not be used in user app");
         errno = ENOMEM;
         return (void*)-1;
@@ -219,7 +223,7 @@ extern "C" {
     {
         (void)r;
         void* ptr = kernel->mem.malloc(size);
-        kernel->app.log("malloc 0x%08" PRIx32 " %u b\n", (uint32_t)(uintptr_t)ptr, (unsigned)size);
+        LOG_DEBUG("malloc 0x%08" PRIx32 " %u b\n", (uint32_t)(uintptr_t)ptr, (unsigned)size);
         return ptr;
     }
 
@@ -233,7 +237,7 @@ extern "C" {
         (void)r;
 
         if (ptr) {
-            kernel->app.log("free   0x%08" PRIx32 "\n", (uint32_t)(uintptr_t)ptr);
+            LOG_DEBUG("free   0x%08" PRIx32 "\n", (uint32_t)(uintptr_t)ptr);
             kernel->mem.free(ptr);
         }
     }
@@ -319,7 +323,7 @@ extern "C" {
                                                  const char *func,
                                                  const char *failedexpr)
     {
-        kernel->app.log("assert: %s %d %s %s\n", file, line, func, failedexpr);
+        LOG_ERROR("assert: %s %d %s %s\n", file, line, func, failedexpr);
         exit(-1);
     }
 
