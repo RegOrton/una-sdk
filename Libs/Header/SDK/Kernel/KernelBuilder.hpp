@@ -18,8 +18,7 @@
  ******************************************************************************
  */
 
-#ifndef __KERNEL_BUILDER_HPP
-#define __KERNEL_BUILDER_HPP
+#pragma once
 
 #include <cassert>
 
@@ -27,22 +26,20 @@
 
 namespace SDK {
 
-    class KernelBuilder {
-    public:
-        static SDK::Kernel make();
+class KernelBuilder {
+public:
+    static SDK::Kernel make();
 
-    private:
-        KernelBuilder()  = delete;
-        ~KernelBuilder() = delete;
+private:
+    KernelBuilder()  = delete;
+    ~KernelBuilder() = delete;
 
-        template <class T>
-        static T& require(const IKernel* k, SDK::Interface::IKIP::IntfID id) {
-            void* p = k->kip.queryInterface(id);
-            assert(p && "Kernel::require: requested interface is not available");
-            return *static_cast<T*>(p);
-        }
-    };
+    template <class T>
+    static T& require(const SDK::Interface::IKernel* k, SDK::Interface::IKIP::IntfID id) {
+        void* p = k->kip.queryInterface(id);
+        assert(p && "Kernel::require: requested interface is not available");
+        return *static_cast<T*>(p);
+    }
+};
 
-}
-
-#endif /* __KERNEL_BUILDER_HPP */
+} // namespace SDK

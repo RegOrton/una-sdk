@@ -25,7 +25,7 @@
  * @details Supplied by the platform/loader; must point to a valid provider that
  *          implements the required interfaces for this application.
  */
-extern const IKernel* kernel;
+extern const SDK::Interface::IKernel* gIKernel;
 
 /**
  * @brief Build a @ref SDK::Kernel façade by querying the underlying provider.
@@ -40,18 +40,20 @@ extern const IKernel* kernel;
  */
 SDK::Kernel SDK::KernelBuilder::make()
 {
-    SDK::Kernel k(require<SDK::Interface::IPower>(kernel,          SDK::Interface::IKIP::IntfID::IID_POWER),
-                  require<SDK::Interface::ISettings>(kernel,       SDK::Interface::IKIP::IntfID::IID_SETTINGS),
-                  require<SDK::Interface::IFileSystem>(kernel,     SDK::Interface::IKIP::IntfID::IID_FILESYSTEM),
-                  kernel->mem,
-                  require<SDK::Interface::ISynchManager>(kernel,   SDK::Interface::IKIP::IntfID::IID_SYNCH_MANAGER),
-                  require<SDK::Interface::ISensorManager>(kernel,  SDK::Interface::IKIP::IntfID::IID_SENSOR_MANAGER),
-                  kernel->app,
-                  require<SDK::Interface::IServiceControl>(kernel, SDK::Interface::IKIP::IntfID::IID_SERVICE_CONTROL),
-                  require<SDK::Interface::IGUIControl>(kernel,     SDK::Interface::IKIP::IntfID::IID_GUI_CONTROL),
-                  require<SDK::Interface::IBacklight>(kernel,      SDK::Interface::IKIP::IntfID::IID_BACKLIGHT),
-                  require<SDK::Interface::IVibro>(kernel,          SDK::Interface::IKIP::IntfID::IID_VIBRO),
-                  require<SDK::Interface::IBuzzer>(kernel,         SDK::Interface::IKIP::IntfID::IID_BUZZER));
+    SDK::Kernel k(require<SDK::Interface::IPower>(gIKernel,             SDK::Interface::IKIP::IntfID::IID_POWER),
+                  require<SDK::Interface::ISettings>(gIKernel,          SDK::Interface::IKIP::IntfID::IID_SETTINGS),
+                  require<SDK::Interface::IFileSystem>(gIKernel,        SDK::Interface::IKIP::IntfID::IID_FILESYSTEM),
+                  gIKernel->mem,
+                  require<SDK::Interface::ISynchManager>(gIKernel,      SDK::Interface::IKIP::IntfID::IID_SYNCH_MANAGER),
+                  require<SDK::Interface::ISensorManager>(gIKernel,     SDK::Interface::IKIP::IntfID::IID_SENSOR_MANAGER),
+                  gIKernel->app,
+                  require<SDK::Interface::IServiceControl>(gIKernel,    SDK::Interface::IKIP::IntfID::IID_SERVICE_CONTROL),
+                  require<SDK::Interface::IGUIControl>(gIKernel,        SDK::Interface::IKIP::IntfID::IID_GUI_CONTROL),
+                  require<SDK::Interface::IBacklight>(gIKernel,         SDK::Interface::IKIP::IntfID::IID_BACKLIGHT),
+                  require<SDK::Interface::IVibro>(gIKernel,             SDK::Interface::IKIP::IntfID::IID_VIBRO),
+                  require<SDK::Interface::IBuzzer>(gIKernel,            SDK::Interface::IKIP::IntfID::IID_BUZZER),
+                  gIKernel->log,
+                  require<SDK::Interface::IAppCapabilities>(gIKernel,   SDK::Interface::IKIP::IntfID::IID_APP_CAPABILITIES));
 
     return k;
 }

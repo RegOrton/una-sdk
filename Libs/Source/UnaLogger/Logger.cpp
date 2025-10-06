@@ -15,35 +15,23 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-
-extern const IKernel* kernel;
+extern const SDK::Interface::IKernel* gIKernel;
 
 void Logger_message(const char* level,
                     const char* module,
-                    const char* module_sep,
                     const char* func,
                     int line,
                     const char* fmt, ...)
 {
-
-    char meta[64];
-    snprintf(meta, sizeof(meta), "%s%s%s%s%d",
-            module, module_sep, func, module_sep, line);
-
-    char full_fmt[128];
-    snprintf(full_fmt, sizeof(full_fmt),
-             "-%s- %-36s: %s", level, meta, fmt);
-
     va_list args;
     va_start(args, fmt);
-    kernel->app.vlog(full_fmt, args);
+    gIKernel->log.mvprintf(level, module, func, line, fmt, args);
     va_end(args);
 }
 
 
 void Logger_hexdump(const char* level,
                     const char* module,
-                    const char* module_sep,
                     const char* func,
                     int line,
                     const void* pData,
@@ -77,6 +65,6 @@ void Logger_hexdump(const char* level,
 
         snprintf(out, remaining, "\n");
 
-        Logger_message(level, module, module_sep, func, line, "%s", buf);
+        Logger_message(level, module, func, line, "%s", buf);
     }
 }

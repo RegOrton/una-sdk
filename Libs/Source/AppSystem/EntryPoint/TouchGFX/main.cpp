@@ -16,7 +16,6 @@ extern "C" void touchgfx_init(void);
 extern "C" void touchgfx_components_init(void);
 extern "C" void touchgfx_taskEntry(void);
 
-extern const IKernel* kernel;
 
 ////////////////////////////////////////////////////////////////////////////////
 //// Main

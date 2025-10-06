@@ -16,7 +16,7 @@
 #define LOG_MODULE_LEVEL    LOG_LEVEL_DEBUG
 #include "SDK/UnaLogger/Logger.h"
 
-namespace Mock {
+namespace SDK::Simulator::Mock {
 
     // TODO: Implement timeouts for play() methods.
 

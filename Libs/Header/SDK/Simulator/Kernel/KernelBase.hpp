@@ -9,8 +9,7 @@
  ******************************************************************************
  */
 
-#ifndef __SIMULATOR_KERNEL_BASE_HPP
-#define __SIMULATOR_KERNEL_BASE_HPP
+#pragma once
 
 #include <cassert>
 #include <cstdint>
@@ -23,16 +22,18 @@
 #include "SDK/Simulator/Kernel/Mock/Backlight.hpp"
 #include "SDK/Simulator/Kernel/Mock/Buzzer.hpp"
 #include "SDK/Simulator/Kernel/Mock/FileSystem.hpp"
-#include "SDK/Simulator/Kernel/Mock/MockServiceControl.hpp"
-#include "SDK/Simulator/Kernel/Mock/MockUserApp.hpp"
-#include "SDK/Simulator/Kernel/Mock/MockUserAppMemAllocator.hpp"
+#include "SDK/Simulator/Kernel/Mock/ServiceControl.hpp"
+#include "SDK/Simulator/Kernel/Mock/App.hpp"
+#include "SDK/Simulator/Kernel/Mock/AppMemAllocator.hpp"
 #include "SDK/Simulator/Kernel/Mock/Power.hpp"
 #include "SDK/Simulator/Kernel/Mock/SensorManager.hpp"
 #include "SDK/Simulator/Kernel/Mock/Settings.hpp"
 #include "SDK/Simulator/Kernel/Mock/Vibro.hpp"
+#include "SDK/Simulator/Kernel/Mock/Logger.hpp"
+#include "SDK/Simulator/Kernel/Mock/AppCapabilities.hpp"
 
 
-namespace Simulator
+namespace SDK::Simulator
 {
 
 /**
@@ -49,8 +50,11 @@ public:
      * @param   useMutex: If 'true', the kernel will use mutexes for synchronization.
      * @param   serviceControl: Reference to the service control object.
      * @param   sensoreCore: Pointer to the sensor core interface (optional).
+     * @param   sensoreCore: Pointer to the MockUserApp (optional).
      */
-    KernelBase(bool useMutex, MockServiceControl& serviceControl, Interface::ISensorCore* sensoreCore = nullptr);
+    KernelBase(bool useMutex, Mock::ServiceControl& serviceControl, 
+        SDK::Simulator::Sensors::ISensorCore* sensoreCore = nullptr,
+        Mock::App* srvApp = nullptr);
 
     virtual ~KernelBase() = default;
 
@@ -87,9 +91,11 @@ public:
 
     /**
      * @brief   Get the pointer to the kernel interface.
-     * @retval  Pointer to the kernel interface (IKernel).
+     * @retval  Pointer to the Kernel.
      */
     const SDK::Kernel* getKernel();
+
+    Mock::App& getApp();
 
     std::string getFsPath();
 
@@ -97,21 +103,27 @@ protected:
     Mock::Power             mIPower;
     Mock::Settings          mISettings;
     Mock::FileSystem        mIFilesystem;
-    MockUserAppMemAllocator mIUserAppMemAllocator;
+    Mock::AppMemAllocator   mIAppMemAllocator;
     OS::SynchManager        mSynchManager;
     Mock::SensorManager     mSensorManager;
-    MockUserApp             mIUserApp;
-    MockServiceControl&     mServiceControl;
+    Mock::App               mIApp;
+    Mock::ServiceControl&   mServiceControl;
     Mock::Backlight         mBacklight;
     Mock::Buzzer            mBuzer;
     Mock::Vibro             mVibro;
-    Interface::ISensorCore* mSensoreCore;
+    Sensors::ISensorCore*   mSensoreCore;
+    Mock::AppCapabilities   mIAppCapabilities;
+    Mock::Logger            mILogger;
 
 private:
 
     friend class KernelHolder;
 
     const SDK::Kernel* mKernel;
+
+    Mock::App* mSrvApp;
+
+    const SDK::Interface::IKernel* createIKernel();
 };
 
 
@@ -152,6 +164,4 @@ private:
     }
 };
 
-} /* namespace Simulator */
-
-#endif /* __SIMULATOR_KERNEL_BASE_HPP */
+} // namespace SDK::Simulator

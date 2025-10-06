@@ -10,23 +10,28 @@
  */
 
 #include "SDK/Simulator/Kernel/KernelBase.hpp"
-#include "SDK/Simulator/Kernel/Mock/MockServiceControl.hpp"
+#include "SDK/Simulator/Kernel/Mock/ServiceControl.hpp"
 #include "SDK/Simulator/Sensors/ISensorCore.hpp"
+#include "SDK/Interfaces/IKernelIntfProvider.hpp"
+
+const SDK::Interface::IKernel* gIKernel = nullptr;
 
 // TODO: Move to common SDK file
 #include "gui/common/GuiConfig.hpp"
 
 static constexpr char sFsPath[] = "../../../../../Output/";
 
-namespace Simulator
+namespace SDK::Simulator
 {
-KernelBase::KernelBase(bool useMutex, MockServiceControl& serviceControl, Interface::ISensorCore* sensoreCore)
+KernelBase::KernelBase(bool useMutex, Mock::ServiceControl& serviceControl, 
+                        Sensors::ISensorCore* sensoreCore,
+                        Mock::App* srvApp)
     : mIPower()
     , mISettings()
     , mIFilesystem(sFsPath)
-    , mIUserAppMemAllocator()
+    , mIAppMemAllocator()
     , mSynchManager()
-    , mIUserApp(useMutex)
+    , mIApp(useMutex)
     , mServiceControl(serviceControl)
     , mBacklight()
     , mBuzer()
@@ -35,30 +40,42 @@ KernelBase::KernelBase(bool useMutex, MockServiceControl& serviceControl, Interf
     , mKernel(new SDK::Kernel(mIPower,
                               mISettings,
                               mIFilesystem,
-                              mIUserAppMemAllocator,
+                              mIAppMemAllocator,
                               mSynchManager,
                               mSensorManager,
-                              mIUserApp,
+                              mIApp,
                               mServiceControl,
                               mServiceControl,
                               mBacklight,
                               mVibro,
-                              mBuzer))
+                              mBuzer,
+                              mILogger,
+                              mIAppCapabilities))
+    , mSrvApp(srvApp)
 {
+    if (gIKernel == nullptr) {
+        gIKernel = createIKernel();
+    }
 }
 
 void KernelBase::startApp()
 { 
-    mIUserApp.create();
-    mIUserApp.start();
-    mIUserApp.resume();
+    mIApp.create();
+    mIApp.start();
+    if (mSrvApp) {
+        mSrvApp->guiState(true);
+    }
+    mIApp.resume();
 }
 
 void KernelBase::stopApp()
 {
-    mIUserApp.pause();
-    mIUserApp.stop();
-    mIUserApp.destroy();
+    mIApp.pause();
+    if (mSrvApp) {
+        mSrvApp->guiState(false);
+    }
+    mIApp.stop();
+    mIApp.destroy();
 }
 
 void KernelBase::tick()
@@ -70,7 +87,7 @@ void KernelBase::tick()
 
 bool KernelBase::keyFilter(uint8_t key)
 {
-    return (mIUserApp.getState() == MockUserApp::State::RESUMED &&
+    return (mIApp.getState() == Mock::App::State::RESUMED &&
             (Gui::Config::Button::L1 == key ||
              Gui::Config::Button::L2 == key ||
              Gui::Config::Button::R1 == key ||
@@ -83,9 +100,30 @@ const SDK::Kernel* KernelBase::getKernel()
     return mKernel;
 }
 
+Mock::App& KernelBase::getApp()
+{
+    return mIApp;
+}
+
 std::string KernelBase::getFsPath()
 {
     return mIFilesystem.getRootPath();
 }
 
-} /* namespace Simulator */
+const SDK::Interface::IKernel* KernelBase::createIKernel()
+{
+    class FakeKIP : public SDK::Interface::IKIP
+    {
+    public:
+        virtual void* queryInterface(IntfID iid) const { return nullptr; }
+        virtual ~FakeKIP() = default;
+    };
+
+    static FakeKIP fakeKIP;
+
+    static SDK::Interface::IKernel ikernel = SDK::Interface::IKernel(fakeKIP, mIApp, mIAppMemAllocator, mILogger);
+
+    return &ikernel;
+}
+
+}

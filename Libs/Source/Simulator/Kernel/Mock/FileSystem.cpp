@@ -20,7 +20,7 @@
 #include <vector>
 #include <filesystem>
 
-namespace Mock
+namespace SDK::Simulator::Mock
 {
 
 // Method to add prefix to the path

@@ -48,7 +48,8 @@
  * @details The value is initialized with @c DUMMY_KERNEL_ADDR and must be patched
  *          by the loader to the actual kernel address prior to use.
  */
-const IKernel *kernel __attribute__((unused, section(".sys_calls"))) = (IKernel*) (DUMMY_KERNEL_ADDR);
+const SDK::Interface::IKernel* gIKernel __attribute__((unused, section(".sys_calls"))) = (SDK::Interface::IKernel*) (DUMMY_KERNEL_ADDR);
+
 
 /** @name C++ init/fini arrays (toolchain-provided)
  *  @brief Weak symbols marking constructor/destructor arrays.
@@ -72,7 +73,7 @@ extern "C" {
     __attribute__((noreturn)) void exitA(int status)
     {
         LOG_DEBUG("exit %d\n", status);
-        kernel->app.exit(status);
+        gIKernel->app.exit(status);
 
         for (;;) { /* stop */ }
     }
@@ -84,11 +85,11 @@ extern "C" {
      *          If either check fails, the function loops forever or terminates.
      */
     void una_check_kernel() {
-        if ((uintptr_t)kernel == (uintptr_t)DUMMY_KERNEL_ADDR) {
+        if ((uintptr_t)gIKernel == (uintptr_t)DUMMY_KERNEL_ADDR) {
             for (;;) { /* stop */ }
         }
 
-        if (kernel->version != KERNEL_INTERFACE_VERSION) {
+        if (gIKernel->version != KERNEL_INTERFACE_VERSION) {
             exitA(-4);
         }
     }
@@ -222,7 +223,7 @@ extern "C" {
     void* _malloc_r(struct _reent *r, size_t size)
     {
         (void)r;
-        void* ptr = kernel->mem.malloc(size);
+        void* ptr = gIKernel->mem.malloc(size);
         LOG_DEBUG("malloc 0x%08" PRIx32 " %u b\n", (uint32_t)(uintptr_t)ptr, (unsigned)size);
         return ptr;
     }
@@ -238,7 +239,7 @@ extern "C" {
 
         if (ptr) {
             LOG_DEBUG("free   0x%08" PRIx32 "\n", (uint32_t)(uintptr_t)ptr);
-            kernel->mem.free(ptr);
+            gIKernel->mem.free(ptr);
         }
     }
 
@@ -269,7 +270,7 @@ extern "C" {
     void* _realloc_r(struct _reent *r, void *ptr, size_t new_size)
     {
         (void)r;
-        return kernel->mem.realloc(ptr, new_size);
+        return gIKernel->mem.realloc(ptr, new_size);
     }
 
     /**
