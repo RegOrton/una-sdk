@@ -35,6 +35,7 @@
 #include <string.h>
 #include <stdint.h>
 
+
 // Log level
 #define LOG_LEVEL_NO_LOG        0
 #define LOG_LEVEL_ERROR         1
@@ -57,25 +58,13 @@
 #endif
 #endif
 
-// Cross-platform function name macro
+// Function name macro
 #ifndef __FUNCTION_NAME__
-#if defined(__GNUC__) || defined(__clang__)
-    #define __FUNCTION_NAME__ __func__
-#elif defined(_MSC_VER)
-    #define __FUNCTION_NAME__ __FUNCTION__
-#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
-    #define __FUNCTION_NAME__ __func__
-#else
-    #define __FUNCTION_NAME__ "unknown"
-#endif
+#define __FUNCTION_NAME__       __func__
 #endif
 
 #ifndef LOG_MODULE_PRX
 #define LOG_MODULE_PRX          __FILENAME__
-#endif
-
-#ifndef LOG_MODULE_SEP
-#define LOG_MODULE_SEP          "::"
 #endif
 
 #ifndef LOG_MODULE_LEVEL
@@ -102,7 +91,6 @@
  */
 void Logger_message(const char *level,
                     const char *module,
-                    const char *module_sep,
                     const char *func,
                     int line,
                     const char *fmt, ...);
@@ -127,7 +115,6 @@ void Logger_message(const char *level,
  */
 void Logger_hexdump(const char *level,
                     const char *module,
-                    const char *module_sep,
                     const char *func,
                     int line,
                     const void *pData,
@@ -140,7 +127,7 @@ void Logger_hexdump(const char *level,
  * @param ... Variable arguments for format string
  */
 #define LOG(LEVEL, FMT, ...) \
-        Logger_message(#LEVEL, LOG_MODULE_PRX, LOG_MODULE_SEP, __FUNCTION_NAME__, __LINE__, FMT, ##__VA_ARGS__)
+        Logger_message(#LEVEL, LOG_MODULE_PRX, __FUNCTION_NAME__, __LINE__, FMT, ##__VA_ARGS__)
 
 /**
  * @brief Generic hexdump macro that outputs binary data with metadata.
@@ -149,7 +136,7 @@ void Logger_hexdump(const char *level,
  * @param LEN Length of data in bytes
  */
 #define LOG_DUMP(LEVEL, DATA, LEN)  \
-        Logger_hexdump(#LEVEL, LOG_MODULE_PRX, LOG_MODULE_SEP, __FUNCTION_NAME__, __LINE__, DATA, LEN)
+        Logger_hexdump(#LEVEL, LOG_MODULE_PRX, __FUNCTION_NAME__, __LINE__, DATA, LEN)
 
 
 #else

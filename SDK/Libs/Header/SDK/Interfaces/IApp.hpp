@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file    IUserApp.hpp.hpp
+ * @file    IApp.hpp.hpp
  * @date    04-02-2025
  * @author  Denys Saienko <denys.saienko@droid-technologies.com>
  * @brief   Interface for a user application interacting with the kernel.
@@ -14,14 +14,11 @@
  ******************************************************************************
  */
 
-#ifndef __INTERFACE_I_USER_APP_HPP
-#define __INTERFACE_I_USER_APP_HPP
+#pragma once
 
 #include <cstdint>
-#include <cstdarg>
-#include "SDK/Interfaces/IGlance.hpp"
 
-class IKernel;
+#include "SDK/Interfaces/IGlance.hpp"
 
 namespace SDK::Interface
 {
@@ -32,12 +29,9 @@ namespace SDK::Interface
  * This interface provides methods for managing the application's lifecycle,
  * handling display output, and processing user input events.
  */
-class IUserApp {
+class IApp {
 public:
-    struct GlanceArea {
-        uint16_t w;
-        uint16_t h;
-    };
+
 
     enum class LaunchReason {
         AUTO_START,
@@ -91,6 +85,20 @@ public:
          */
         virtual void onDestroy() {};
 
+        /**
+         * @brief Called only for Service app after on GUI 'onStart()' to notify Service app
+         *        about GUI state.
+         * @note  Can be triggered only if Service app is started (e.g. after 'onStart()).
+         */
+        virtual void onStartGUI() {};
+
+        /**
+         * @brief Called only for Service app after before 'onStop()' to notify Service app 
+         *        about GUI state.
+         * @note  Can be triggered only if Service app is started (e.g. after 'onStart()).
+         */
+        virtual void onStopGUI() {};
+
     protected:
         /**
          * @brief Virtual destructor.
@@ -108,7 +116,7 @@ public:
      * @note The callback will not be triggered until the application calls 'initialized()'.
      * @param pCallback Pointer to the lifecycle callback implementation.
      */
-    virtual void registerApp(Interface::IUserApp::Callback *pCallback) = 0;
+    virtual void registerApp(Interface::IApp::Callback *pCallback) = 0;
 
     /**
      * @brief Registers a glance interface
@@ -212,26 +220,6 @@ public:
     virtual bool keySample(uint8_t &key) = 0;
 
     /**
-     * @brief Log a formatted message.
-     *
-     * This method allows the application to log messages in a formatted way.
-     *
-     * @param format Format string (printf-style).
-     * @param ... Additional arguments.
-     */
-    virtual void log(const char *format, ...) = 0;
-
-    /**
-     * @brief Log a formatted message.
-     *
-     * This method allows the application to log messages in a formatted way.
-     *
-     * @param   format Format string (printf-style).
-     * @param   args Variable argument list
-     */
-    virtual void vlog(const char* format, va_list args) = 0;
-
-    /**
      * @brief Get the current time in milliseconds.
      * @retval The current time in milliseconds.
      */
@@ -250,51 +238,10 @@ public:
     virtual void yield() = 0;
 
     /**
-     * @brief   Notify kernel that APP settings has been changed.
-     */
-    virtual void notifySettingsChanged() = 0;
-
-    /**
-     * @brief   Notify the kernel that the activity session has ended and the 
-     *          data has been saved.
-     */
-    virtual void notifyActivityEnd() = 0;
-
-    /**
-     * @brief   Notify the kernel that an alert has occurred to start a new Lap
-     *          by time/steps/distance.
-     */
-    virtual void notifyLapAlert() = 0;
-
-    /**
-     * @brief   Enable/Disable displaying notifications from the phone when 
-     *          the APP is running.
-     * @note    Notifications are enabled by default.
-     * @param   enable: True - enable notifications. False - disable.
-     */
-    virtual void enablePhoneNotification(bool enable) = 0;
-
-    /**
-     * @brief   Enable/disable L2 button hold response for music control when 
-     *          the APP is running.
-     * @note    Music control enabled by default.
-     * @param   enable: True - enable notifications. False - disable.
-     */
-    virtual void enableMusicControl(bool enable) = 0;
-
-    /**
-     * @brief   Enable/Disable displaying USB/charging screen when
-     *          the APP is running.
-     * @note    Switching to USB/charging screen enabled by default.
-     * @param   enable: True - enable USB/charging screen. False - disable.
-     */
-    virtual void enableUsbCharging(bool enable) = 0;
-
-    /**
      * @brief Locks of the application mutex
      *
      */
-    virtual void lock()   = 0;
+    virtual void lock() = 0;
 
     /**
      * @brief Unlocks of the application mutex
@@ -304,9 +251,10 @@ public:
 
     /**
      * @brief Returns the glance area that is available for userapp
-     *
+     * @param width  Reference to store the glance area width.
+     * @param height Reference to store the glance area height.
      */
-    virtual struct GlanceArea getGlanceArea() = 0;
+    virtual void getGlanceArea(int16_t &width, int16_t &height) = 0;
 
     /**
      * @brief Returns the cause of the UserApp launch
@@ -318,9 +266,7 @@ protected:
     /**
      * @brief Virtual destructor.
      */
-    virtual ~IUserApp() = default;
+    virtual ~IApp() = default;
 };
 
-} /* namespace Interface */
-
-#endif /* __INTERFACE_I_USER_APP_HPP */
+} // namespace SDK::Interface

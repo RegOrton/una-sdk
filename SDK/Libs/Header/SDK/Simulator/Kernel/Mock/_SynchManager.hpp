@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file    MockServiceControl.hpp
+ * @file    ServiceControl.hpp
  * @date    18-July-2025
  * @author  Oleksandr Tymoshenko <oleksandr.tymoshenko@droid-technologies.com>
  * @brief   Mock for IServiceControl interface.

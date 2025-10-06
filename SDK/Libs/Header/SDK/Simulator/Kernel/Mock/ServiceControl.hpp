@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file    MockServiceControl.hpp
+ * @file    ServiceControl.hpp
  * @date    18-July-2025
  * @author  Oleksandr Tymoshenko <oleksandr.tymoshenko@droid-technologies.com>
  * @brief   Mock for IServiceControl interface.
@@ -10,21 +10,21 @@
  ******************************************************************************
  */
 
-#ifndef __SIMULATOR_KERNEL_SERVICE_CONTROL_HPP
-#define __SIMULATOR_KERNEL_SERVICE_CONTROL_HPP
+#pragma once
 
-#include "SDK/Interfaces/IUserAppControl.hpp"
+#include "SDK/Interfaces/IAppControl.hpp"
 
-namespace Simulator {
+namespace SDK::Simulator::Mock
+{
 
-class MockServiceControl : public SDK::Interface::IServiceControl,
+class ServiceControl : public SDK::Interface::IServiceControl,
                            public SDK::Interface::IGUIControl
 {
 public:
-    MockServiceControl() : mContext()
+    ServiceControl() : mContext()
     {}
 
-    virtual ~MockServiceControl() = default;
+    virtual ~ServiceControl() = default;
 
     bool runGUI(std::shared_ptr<void> context) override
     {
@@ -47,6 +47,4 @@ private:
     std::shared_ptr<void> mContext;
 };
 
-} /* namespace Simulator */
-
-#endif /* __SIMULATOR_KERNEL_SERVICE_CONTROL_HPP */
+} // namespace SDK::Simulator::Mock

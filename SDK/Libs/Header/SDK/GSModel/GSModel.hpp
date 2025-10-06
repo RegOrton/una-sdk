@@ -58,6 +58,14 @@ public:
     }
 
     /**
+     * @brief Publish a dummy event to your own queue to break the wait timeout.
+     */
+    void refresh()
+    {
+        //mGSBridge->post();
+    }
+
+    /**
      * @brief Enqueue a Service->GUI (S2G) event.
      * @param data Event payload.
      * @retval true  Event enqueued.

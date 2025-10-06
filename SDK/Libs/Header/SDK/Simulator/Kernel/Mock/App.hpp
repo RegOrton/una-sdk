@@ -1,6 +1,6 @@
 /**
  ******************************************************************************
- * @file    MockUserApp.hpp
+ * @file    App.hpp
  * @date    04-02-2025
  * @author  Denys Saienko <denys.saienko@droid-technologies.com>
  * @brief   Mock for IUserApp interface.
@@ -9,8 +9,7 @@
  ******************************************************************************
  */
 
-#ifndef __SIMULATOR_KERNEL_USER_APP_HPP
-#define __SIMULATOR_KERNEL_USER_APP_HPP
+#pragma once
 
 #include <cstdint>
 #include <cstdarg>
@@ -18,15 +17,16 @@
 #include <windows.h>
 
 #include "SDK/Platform/OS/OS.hpp"
-#include "SDK/Interfaces/IUserApp.hpp"
+#include "SDK/Interfaces/IApp.hpp"
 #include "SDK/Interfaces/IGlance.hpp"
 
 #include <platform/hal/simulator/sdl2/HALSDL2.hpp>
+#include "touchgfx/Utils.hpp"
 
-namespace Simulator
+namespace SDK::Simulator::Mock
 {
 
-class MockUserApp : public SDK::Interface::IUserApp {
+class App : public SDK::Interface::IApp {
 
 public:
 
@@ -40,8 +40,9 @@ public:
         bool tryLock() override { return true; }
     };
 
-    MockUserApp(bool useMutex = true)
+    App(bool useMutex = true)
         : mpCallback(nullptr)
+        , mpGlance(nullptr)
         , mState(State::DESTROYED)
         , mMutex()
         , mFakeMutex()
@@ -49,9 +50,9 @@ public:
                     : static_cast<SDK::Interface::IMutex*>(&mFakeMutex))
     {}
 
-    virtual ~MockUserApp() = default;
+    virtual ~App() = default;
 
-    virtual void registerApp(SDK::Interface::IUserApp::Callback *pCallback) override
+    virtual void registerApp(SDK::Interface::IApp::Callback *pCallback) override
     {
         mpCallback = pCallback;
     }
@@ -61,10 +62,10 @@ public:
         mpGlance = glance;
     }
 
-    struct GlanceArea getGlanceArea() override
+    void getGlanceArea(int16_t& width, int16_t& height) override
     {
-        struct GlanceArea area = {240, 240};
-        return area;
+        width = 240;
+        height = 60;
     }
 
     LaunchReason getLaunchReason() override
@@ -115,14 +116,7 @@ public:
         return false;
     }
     
-    virtual void log(const char *format, ...) override
-    {
-        va_list args;
-        va_start(args, format);
-        vprintf(format, args);
-        va_end(args);
-    }
-    
+
     virtual uint32_t getTimeMs() override 
     { 
         return static_cast<uint32_t>(GetTickCount64());
@@ -136,30 +130,6 @@ public:
     }
 
     virtual void yield() override { }
-
-    virtual void notifySettingsChanged() override
-    {
-    }
-
-    virtual void notifyActivityEnd() override
-    {
-    }
-
-    virtual void notifyLapAlert() override
-    {
-    }
-
-    virtual void enablePhoneNotification(bool enable) override
-    {
-    }
-
-    virtual void enableMusicControl(bool enable) override
-    {
-    }
-
-    virtual void enableUsbCharging(bool enable) override
-    {
-    }
 
     virtual void lock() override
     {
@@ -251,18 +221,27 @@ public:
         }
     }
 
-
+    void guiState(bool isRun)
+    {
+        if (mState >= State::STARTED) {
+            OS::MutexCS cs(*mAppMutex);
+            if (isRun) {
+                mpCallback->onStartGUI();
+            } else {
+                mpCallback->onStopGUI();
+            }
+            
+        }
+    }
 
 private:
-    SDK::Interface::IUserApp::Callback* mpCallback;
-	SDK::Interface::IGlance*            mpGlance;
-    State                               mState;
-    OS::Mutex                           mMutex;
-    FakeMutex                           mFakeMutex;
-    SDK::Interface::IMutex*             mAppMutex;
-
+    SDK::Interface::IApp::Callback* mpCallback;
+	SDK::Interface::IGlance*        mpGlance;
+    State                           mState;
+    OS::Mutex                       mMutex;
+    FakeMutex                       mFakeMutex;
+    SDK::Interface::IMutex*         mAppMutex;
+    
 };
 
-} /* namespace Simulator */
-
-#endif /* __SIMULATOR_KERNEL_USER_APP_HPP */
+} // namespace SDK::Simulator::Mock

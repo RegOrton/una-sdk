@@ -15,13 +15,13 @@
  ******************************************************************************
  */
 
-#ifndef __INTERFACE_I_KERNEL_INTERFACE_PROVIDER_HPP
-#define __INTERFACE_I_KERNEL_INTERFACE_PROVIDER_HPP
+#pragma once
 
 #include <cstdint>
 
 namespace SDK::Interface
 {
+
 /**
  * @brief Interface to query kernel sub-interfaces by identifier.
  *
@@ -49,6 +49,7 @@ public:
         IID_BACKLIGHT,          // SDK::Interface::IBacklight
         IID_VIBRO,              // SDK::Interface::IVibro
         IID_BUZZER,             // SDK::Interface::IBuzzer
+        IID_APP_CAPABILITIES,   // SDK::Interface::IAppCapabilities
         IID_COUNT               // Number of entries
     };
 
@@ -73,6 +74,4 @@ protected:
     virtual ~IKIP() = default;
 };
 
-} /* namespace SDK::Interface */
-
-#endif /* __INTERFACE_I_KERNEL_INTERFACE_PROVIDER_HPP */
+} // namespace SDK::Interface
