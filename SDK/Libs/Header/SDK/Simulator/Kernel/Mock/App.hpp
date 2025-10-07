@@ -20,7 +20,7 @@
 #include "SDK/Interfaces/IApp.hpp"
 #include "SDK/Interfaces/IGlance.hpp"
 
-#include <platform/hal/simulator/sdl2/HALSDL2.hpp>
+
 #include "touchgfx/Utils.hpp"
 
 namespace SDK::Simulator::Mock
@@ -40,13 +40,12 @@ public:
         bool tryLock() override { return true; }
     };
 
-    App(bool useMutex = true)
+    App(OS::Mutex* appMutex)
         : mpCallback(nullptr)
         , mpGlance(nullptr)
         , mState(State::DESTROYED)
-        , mMutex()
         , mFakeMutex()
-        , mAppMutex(useMutex ? static_cast<SDK::Interface::IMutex*>(&mMutex)
+        , mAppMutex(appMutex ? static_cast<SDK::Interface::IMutex*>(appMutex)
                     : static_cast<SDK::Interface::IMutex*>(&mFakeMutex))
     {}
 
@@ -57,18 +56,18 @@ public:
         mpCallback = pCallback;
     }
 
-    void registerGlance(SDK::Interface::IGlance* glance) override
+    virtual void registerGlance(SDK::Interface::IGlance* glance) override
     {
         mpGlance = glance;
     }
 
-    void getGlanceArea(int16_t& width, int16_t& height) override
+    virtual void getGlanceArea(int16_t& width, int16_t& height) override
     {
         width = 240;
         height = 60;
     }
 
-    LaunchReason getLaunchReason() override
+    virtual LaunchReason getLaunchReason() override
     {
         return LaunchReason::AUTO_START;
     }
@@ -89,15 +88,6 @@ public:
         resume();
     }
 
-    virtual void restartRequest() override
-    {
-        exit();
-    }
-    
-    virtual void exit(int status = 0) override
-    {
-        static_cast<touchgfx::HALSDL2 *>(touchgfx::HAL::getInstance())->stopApplication();
-    }
 
     virtual void getDisplayResolution(int16_t &width, int16_t &height) override
     {
@@ -117,19 +107,6 @@ public:
     }
     
 
-    virtual uint32_t getTimeMs() override 
-    { 
-        return static_cast<uint32_t>(GetTickCount64());
-    }
-    
-    virtual void delay(uint32_t ms) override
-    {
-        mAppMutex->unLock();
-        Sleep(ms);
-        mAppMutex->lock();
-    }
-
-    virtual void yield() override { }
 
     virtual void lock() override
     {
@@ -149,12 +126,12 @@ public:
         RESUMED,
     };
 
-    State  getState()
+    virtual State  getState()
     {
         return mState;
     }
 
-    void create() 
+    virtual void create()
     { 
         if (mState == State::DESTROYED) {
             mState = State::CREATED;
@@ -166,7 +143,7 @@ public:
     }
 
 
-    void start()
+    virtual void start()
     {
         if (mState == State::CREATED) {
             mState = State::STARTED;
@@ -178,7 +155,7 @@ public:
     }
 
 
-    void resume()
+    virtual void resume()
     {
         if (mState == State::STARTED) {
             mState = State::RESUMED;
@@ -190,7 +167,7 @@ public:
     }
 
 
-    void pause()
+    virtual void pause()
     {
         if (mState == State::RESUMED) {
             mState = State::STARTED;
@@ -201,7 +178,7 @@ public:
         }
     }
 
-    void stop()
+    virtual void stop()
     {
         if (mState == State::STARTED) {
             mState = State::CREATED;
@@ -212,25 +189,28 @@ public:
         }
     }
 
-    void destroy()
+    virtual void destroy()
     {
         if (mState == State::CREATED) {
             mState = State::DESTROYED;
-            OS::MutexCS cs(*mAppMutex);
-            mpCallback->onDestroy();
+            if (mpCallback) {
+                OS::MutexCS cs(*mAppMutex);
+                mpCallback->onDestroy();
+            }
         }
     }
 
-    void guiState(bool isRun)
+    virtual void guiState(bool isRun)
     {
         if (mState >= State::STARTED) {
-            OS::MutexCS cs(*mAppMutex);
-            if (isRun) {
-                mpCallback->onStartGUI();
-            } else {
-                mpCallback->onStopGUI();
+            if (mpCallback) {
+                OS::MutexCS cs(*mAppMutex);
+                if (isRun) {
+                    mpCallback->onStartGUI();
+                } else {
+                    mpCallback->onStopGUI();
+                }
             }
-            
         }
     }
 
@@ -238,7 +218,6 @@ private:
     SDK::Interface::IApp::Callback* mpCallback;
 	SDK::Interface::IGlance*        mpGlance;
     State                           mState;
-    OS::Mutex                       mMutex;
     FakeMutex                       mFakeMutex;
     SDK::Interface::IMutex*         mAppMutex;
     
