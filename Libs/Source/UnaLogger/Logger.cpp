@@ -10,12 +10,18 @@
  */
 
 #include "SDK/UnaLogger/Logger.h"
-#include "SDK/Interfaces/IKernel.hpp"
 
 #include <stdlib.h>
 #include <stdarg.h>
 
-extern const SDK::Interface::IKernel* gIKernel;
+static SDK::Interface::ILogger* sILogger;
+
+void Logger_init(SDK::Interface::ILogger& ilogger)
+{
+    if (!sILogger) {
+        sILogger = &ilogger;
+    }
+}
 
 void Logger_message(const char* level,
                     const char* module,
@@ -25,7 +31,9 @@ void Logger_message(const char* level,
 {
     va_list args;
     va_start(args, fmt);
-    gIKernel->log.mvprintf(level, module, func, line, fmt, args);
+    if (sILogger) {
+        sILogger->mvprintf(level, module, func, line, fmt, args);
+    }
     va_end(args);
 }
 

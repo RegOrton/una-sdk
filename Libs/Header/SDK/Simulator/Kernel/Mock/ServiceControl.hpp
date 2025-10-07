@@ -26,17 +26,17 @@ public:
 
     virtual ~ServiceControl() = default;
 
-    bool runGUI() override
+    virtual bool runGUI() override
     {
         return static_cast<bool>(mContext);
     }
 
-    void setContext(std::shared_ptr<void> context) override
+    virtual void setContext(std::shared_ptr<void> context) override
     {
         mContext = context;
     }
 
-    virtual std::shared_ptr<void> getContext()
+    virtual std::shared_ptr<void> getContext() override
     {
         return mContext;
     }

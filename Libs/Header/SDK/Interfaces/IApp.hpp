@@ -38,6 +38,15 @@ public:
         ON_DEMAND
     };
 
+    enum Button : uint8_t
+    {
+        BUTTON_L1   = '1',
+        BUTTON_L2   = '2',
+        BUTTON_R1   = '3',
+        BUTTON_R2   = '4',
+        BUTTON_L1R2 = 'z',
+    };
+
     /**
      * @brief Callback interface for application lifecycle events.
      */
@@ -107,6 +116,12 @@ public:
     };
 
     /**
+     * @brief Returns the cause of the App launch
+     *
+     */
+    virtual LaunchReason getLaunchReason() = 0;
+
+    /**
      * @brief Registers a lifecycle callback.
      *
      * The application can register a callback to receive lifecycle event notifications.
@@ -167,25 +182,6 @@ public:
     virtual void resumeRequest() = 0;
 
     /**
-     * @brief Requests the kernel to restart the application.
-     *
-     * This triggers the following sequence of callbacks:
-     * 'onPause() -> onStop() -> onStart() -> onResume()'.
-     */
-    virtual void restartRequest() = 0;
-
-    /**
-     * @brief Terminates the application.
-     *
-     * When this method is called, the following callbacks will be triggered
-     * in sequence (depending on the current state): 'onPause() -> onStop() -> onDestroy()'.
-     * After execution, the application is removed from memory.
-     *
-     * @param status Exit status (0 for normal exit, <0 for errors).
-     */
-    virtual void exit(int status = 0) = 0;
-
-    /**
      * @brief Retrieves the display resolution.
      * @param width  Reference to store the display width.
      * @param height Reference to store the display height.
@@ -197,6 +193,13 @@ public:
      * @return Bits per pixel.
      */
     virtual uint8_t getDisplayColorDepth() = 0;
+
+    /**
+     * @brief Returns the glance area that is available for userapp
+     * @param width  Reference to store the glance area width.
+     * @param height Reference to store the glance area height.
+     */
+    virtual void getGlanceArea(int16_t &width, int16_t &height) = 0;
 
     /**
      * @brief Writes a frame buffer to the display.
@@ -219,24 +222,8 @@ public:
      */
     virtual bool keySample(uint8_t &key) = 0;
 
-    /**
-     * @brief Get the current time in milliseconds.
-     * @retval The current time in milliseconds.
-     */
-    virtual uint32_t getTimeMs() = 0;
 
-    /**
-     * @brief Delay for a specified amount of time.
-     * @param ms Number of milliseconds to delay.
-     */
-    virtual void delay(uint32_t ms) = 0;
-
-    /**
-     * @brief Yield execution to the kernel.
-     * back to the kernel.
-     */
-    virtual void yield() = 0;
-
+    //TODO: used in Sensor driver. Move to ISystem
     /**
      * @brief Locks of the application mutex
      *
@@ -248,19 +235,6 @@ public:
      *
      */
     virtual void unLock() = 0;
-
-    /**
-     * @brief Returns the glance area that is available for userapp
-     * @param width  Reference to store the glance area width.
-     * @param height Reference to store the glance area height.
-     */
-    virtual void getGlanceArea(int16_t &width, int16_t &height) = 0;
-
-    /**
-     * @brief Returns the cause of the UserApp launch
-     *
-     */
-    virtual LaunchReason getLaunchReason() = 0;
 
 protected:
     /**

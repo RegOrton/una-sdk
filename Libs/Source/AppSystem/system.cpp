@@ -39,9 +39,6 @@
 #include "SDK/AppSystem/AtExitImpl.hpp"
 #include "SDK/Interfaces/IKernel.hpp"
 
-#define LOG_MODULE_PRX      "system"
-#define LOG_MODULE_LEVEL    LOG_LEVEL_ERROR
-#include "SDK/UnaLogger/Logger.h"
 
 /**
  * @brief  Global kernel pointer placed into a dedicated section for patching.
@@ -62,7 +59,39 @@ extern void (*__fini_array_start[])     (void) __attribute__((weak));
 extern void (*__fini_array_end[])       (void) __attribute__((weak));
 /** @} */
 
+// Pointer to the required interfaces to handle low-level processes
+static SDK::Interface::ISystem*     isys;
+static SDK::Interface::ILogger*     ilog;   // Do not use Logger directly here, use raw interface instead
+static SDK::Interface::IAppMemory*  imem;
+
+void initInterfaces() {
+
+}
+
 extern "C" {
+
+
+    /**
+     * @brief  Sanity-check kernel pointer and interface version and init required interfaces.
+     * @details Verifies that @ref kernel is patched (not equal to @c DUMMY_KERNEL_ADDR)
+     *          and that the interface version matches @c KERNEL_INTERFACE_VERSION.
+     *          If either check fails, the function loops forever or terminates.
+     */
+    void una_init_kernel() {
+        if ((uintptr_t)gIKernel == (uintptr_t)DUMMY_KERNEL_ADDR) {
+            for (;;) { /* stop */ }
+        }
+
+        isys = static_cast<SDK::Interface::ISystem*>(gIKernel->kip.queryInterface(SDK::Interface::IKIP::IntfID::IID_SYSTEM));
+        ilog = static_cast<SDK::Interface::ILogger*>(gIKernel->kip.queryInterface(SDK::Interface::IKIP::IntfID::IID_LOGGER));
+        imem = static_cast<SDK::Interface::IAppMemory*>(gIKernel->kip.queryInterface(SDK::Interface::IKIP::IntfID::IID_APP_MEMORY));
+
+        if (gIKernel->version < KERNEL_INTERFACE_VERSION) {
+            ilog->printf("-E- system::una_init_kernel:%d: Kernel not supported. Minimum %d, got %d\n",
+                    __LINE__, KERNEL_INTERFACE_VERSION, gIKernel->version);
+            isys->exit(-4);
+        }
+    }
 
     /**
      * @brief   Platform-specific final termination path.
@@ -72,26 +101,8 @@ extern "C" {
      */
     __attribute__((noreturn)) void exitA(int status)
     {
-        LOG_DEBUG("exit %d\n", status);
-        gIKernel->app.exit(status);
-
+        isys->exit(status);
         for (;;) { /* stop */ }
-    }
-
-    /**
-     * @brief  Sanity-check kernel pointer and interface version.
-     * @details Verifies that @ref kernel is patched (not equal to @c DUMMY_KERNEL_ADDR)
-     *          and that the interface version matches @c KERNEL_INTERFACE_VERSION.
-     *          If either check fails, the function loops forever or terminates.
-     */
-    void una_check_kernel() {
-        if ((uintptr_t)gIKernel == (uintptr_t)DUMMY_KERNEL_ADDR) {
-            for (;;) { /* stop */ }
-        }
-
-        if (gIKernel->version != KERNEL_INTERFACE_VERSION) {
-            exitA(-4);
-        }
     }
 
     /**
@@ -132,19 +143,6 @@ extern "C" {
             __fini_array_start[i] ();
         }
     }
-}
-
-/**
- * @brief   _sbrk() allocates memory to the newlib heap and is used by malloc and others.
- * @details Dynamic memory allocation occurs through the system kernel interface in this
- *          environment, so this function is redirected to the C++ adapter, which logs
- *          and returns failure.
- *
- * @param   incr Requested heap increment in bytes.
- * @return  Always returns @c (void*)-1 and sets @c errno=ENOMEM.
- */
-
-extern "C" {
 
     /**
      * @brief  C++ ABI handle for DSO finalization bookkeeping (newlib/gcc).
@@ -153,14 +151,17 @@ extern "C" {
     void* __dso_handle = nullptr;
 
     /**
-     * @brief   System heap extension hook (must not be used).
+     * @brief   _sbrk() allocates memory to the newlib heap and is used by malloc and others.
+     * @details Dynamic memory allocation occurs through the system kernel interface in this
+     *          environment, so this function is redirected to the C++ adapter, which logs
+     *          and returns failure.
+     *
      * @param   incr Requested increment in bytes.
      * @return  Always @c (void*)-1. See @ref _sbrk_cpp_adapter.
      */
     void* _sbrk(ptrdiff_t incr)
     {
-        LOG_ERROR("_sbrk %d\n", (int)incr);
-        assert(0 && "_sbrk must not be used in user app");
+        assert(0 && "_sbrk must not be used in user app\n");
         errno = ENOMEM;
         return (void*)-1;
     }
@@ -223,8 +224,8 @@ extern "C" {
     void* _malloc_r(struct _reent *r, size_t size)
     {
         (void)r;
-        void* ptr = gIKernel->mem.malloc(size);
-        LOG_DEBUG("malloc 0x%08" PRIx32 " %u b\n", (uint32_t)(uintptr_t)ptr, (unsigned)size);
+        void* ptr = imem->malloc(size);
+        //ilog->printf("-D- system::_malloc_r:%d: 0x%08X %u bytes\n", __LINE__, (uint32_t)(uintptr_t)ptr, (unsigned)size);
         return ptr;
     }
 
@@ -237,10 +238,11 @@ extern "C" {
     {
         (void)r;
 
-        if (ptr) {
-            LOG_DEBUG("free   0x%08" PRIx32 "\n", (uint32_t)(uintptr_t)ptr);
-            gIKernel->mem.free(ptr);
+        if (!ptr) {
+            return;
         }
+        //ilog->printf("-D- system::_free_r:%d:   0x%08X\n", __LINE__, (uint32_t)(uintptr_t)ptr);
+        imem->free(ptr);
     }
 
     /**
@@ -270,7 +272,7 @@ extern "C" {
     void* _realloc_r(struct _reent *r, void *ptr, size_t new_size)
     {
         (void)r;
-        return gIKernel->mem.realloc(ptr, new_size);
+        return imem->realloc(ptr, new_size);
     }
 
     /**
@@ -324,7 +326,7 @@ extern "C" {
                                                  const char *func,
                                                  const char *failedexpr)
     {
-        LOG_ERROR("assert: %s %d %s %s\n", file, line, func, failedexpr);
+        ilog->printf("-E- assert: %s %d %s %s\n", file, line, func, failedexpr);
         exit(-1);
     }
 
@@ -402,7 +404,8 @@ namespace std
 
         assert(false);
     }
-}
+
+} // extern "C"
 
 /**
  * @brief   Global operator new using reentrant malloc.

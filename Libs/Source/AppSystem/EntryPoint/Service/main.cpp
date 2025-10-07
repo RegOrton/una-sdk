@@ -9,23 +9,24 @@
  ******************************************************************************
  */
 
-#include "SDK/Kernel/KernelProviderService.hpp"
 #include "SDK/Kernel/KernelBuilder.hpp"
+#include "SDK/Kernel/KernelProviderService.hpp"
+#include "SDK/UnaLogger/Logger.h"
 #include "SDK/AppSystem/SvcBootstrap.hpp"
-#include "SDK/AppSystem/UserAppEntry.hpp"
-#include "Service.hpp"
 
-////////////////////////////////////////////////////////////////////////////////
-//// Main
-////////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief  Global kernel pointer defined in system.cpp.
+ */
+extern const SDK::Interface::IKernel* gIKernel;
+
+/*
+ * @brief Main entry point for an application service.
+ * @retval int
+ */
 int main()
 {
-    ///////////////////////////
-    //// Build the kernel
-    ///////////////////////////
-
-    SDK::Kernel kernel = SDK::KernelBuilder::make();
+    SDK::Kernel kernel = SDK::KernelBuilder::make(gIKernel);
     SDK::KernelProviderService::CreateInstance(&kernel);
 
     SDK::Service::Bootstrap bootstrap;

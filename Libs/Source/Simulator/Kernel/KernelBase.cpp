@@ -14,68 +14,51 @@
 #include "SDK/Simulator/Sensors/ISensorCore.hpp"
 #include "SDK/Interfaces/IKernelIntfProvider.hpp"
 
-const SDK::Interface::IKernel* gIKernel = nullptr;
-
-// TODO: Move to common SDK file
-#include "gui/common/GuiConfig.hpp"
-
 static constexpr char sFsPath[] = "../../../../../Output/";
 
 namespace SDK::Simulator
 {
-KernelBase::KernelBase(bool useMutex, Mock::ServiceControl& serviceControl, 
-                        Sensors::ISensorCore* sensoreCore,
-                        Mock::App* srvApp)
-    : mIPower()
-    , mISettings()
-    , mIFilesystem(sFsPath)
-    , mIAppMemAllocator()
-    , mSynchManager()
-    , mIApp(useMutex)
-    , mServiceControl(serviceControl)
-    , mBacklight()
-    , mBuzer()
-    , mVibro()
-    , mSensoreCore(sensoreCore)
-    , mKernel(new SDK::Kernel(mIPower,
-                              mISettings,
-                              mIFilesystem,
-                              mIAppMemAllocator,
-                              mSynchManager,
-                              mSensorManager,
-                              mIApp,
-                              mServiceControl,
-                              mServiceControl,
-                              mBacklight,
-                              mVibro,
-                              mBuzer,
-                              mILogger,
-                              mIAppCapabilities))
-    , mSrvApp(srvApp)
+
+KernelBase::KernelBase(Mock::ServiceControl& serviceControl,
+    Sensors::ISensorCore* sensoreCore,
+    Mock::App* srvApp)
+    : mIsServise(srvApp == nullptr) , mSrvApp(srvApp) , mSensoreCore(sensoreCore), mAppMutex()
+    // Init Mocks
+    , mISystem(mIsServise ? &mAppMutex : nullptr), mILogger()
+    , mIAppMemory(), mIApp(mIsServise ? &mAppMutex : nullptr), mIAppCapabilities()
+    , mSynchManager(), mServiceControl(serviceControl), mIPower(), mISettings()
+    , mIFilesystem(sFsPath), mIBacklight(), mIVibro(), mIBuzer(), mITime(), mSensorManager()
+    // Init pointers to the mocks
+    , isystem(&mISystem), ilogger(&mILogger), imem(&mIAppMemory), iappmock(&mIApp)
+    , iappCapabilities(&mIAppCapabilities), isynchManager(&mSynchManager)
+    , isctrl(&mServiceControl), igctrl(&mServiceControl), ipwr(&mIPower)
+    , isettings(&mISettings), ifs(&mIFilesystem), ibacklight(&mIBacklight)
+    , ivibro(&mIVibro), ibuzzer(&mIBuzer), itime(&mITime), isensorManager(&mSensorManager)
+    // Init KIP with references
+    , mKip(*this)
+    // Init base class with KIP
+    , IKernel(mKip)
 {
-    if (gIKernel == nullptr) {
-        gIKernel = createIKernel();
-    }
 }
 
 void KernelBase::startApp()
-{ 
-    mIApp.create();
-    mIApp.start();
+{
+    iappmock->create();
+    iappmock->start();
     if (mSrvApp) {
         mSrvApp->guiState(true);
     }
-    mIApp.resume();
+    iappmock->resume();
 }
 
 void KernelBase::stopApp()
 {
-    mIApp.pause();
+    iappmock->pause();
     if (mSrvApp) {
         mSrvApp->guiState(false);
     }
-    mIApp.stop();
-    mIApp.destroy();
+    iappmock->stop();
+    iappmock->destroy();
 }
 
 void KernelBase::tick()
@@ -87,22 +70,18 @@ void KernelBase::tick()
 
 bool KernelBase::keyFilter(uint8_t key)
 {
-    return (mIApp.getState() == Mock::App::State::RESUMED &&
-            (Gui::Config::Button::L1 == key ||
-             Gui::Config::Button::L2 == key ||
-             Gui::Config::Button::R1 == key ||
-             Gui::Config::Button::R2 == key ||
-             Gui::Config::Button::L1R2 == key));
-}
+    return (!mIsServise && iappmock->getState() == Mock::App::State::RESUMED &&
+            (SDK::Interface::IApp::Button::BUTTON_L1 == key ||
+             SDK::Interface::IApp::Button::BUTTON_L2 == key ||
+             SDK::Interface::IApp::Button::BUTTON_R1 == key ||
+             SDK::Interface::IApp::Button::BUTTON_R2 == key ||
+             SDK::Interface::IApp::Button::BUTTON_L1R2 == key));
 
-const SDK::Kernel* KernelBase::getKernel()
-{
-    return mKernel;
 }
 
 Mock::App& KernelBase::getApp()
 {
-    return mIApp;
+    return *iappmock;
 }
 
 std::string KernelBase::getFsPath()
@@ -110,20 +89,4 @@ std::string KernelBase::getFsPath()
     return mIFilesystem.getRootPath();
 }
 
-const SDK::Interface::IKernel* KernelBase::createIKernel()
-{
-    class FakeKIP : public SDK::Interface::IKIP
-    {
-    public:
-        virtual void* queryInterface(IntfID iid) const { return nullptr; }
-        virtual ~FakeKIP() = default;
-    };
-
-    static FakeKIP fakeKIP;
-
-    static SDK::Interface::IKernel ikernel = SDK::Interface::IKernel(fakeKIP, mIApp, mIAppMemAllocator, mILogger);
-
-    return &ikernel;
-}
-
-}
+} // namespace SDK::Simulator

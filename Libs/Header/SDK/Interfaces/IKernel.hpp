@@ -22,22 +22,27 @@
 
 #include <cstdint>
 #include <cstddef>
-#include <cassert>
 
 #include "SDK/Interfaces/IKernelIntfProvider.hpp"
+
+#include "SDK/Interfaces/ISystem.hpp"
+#include "SDK/Interfaces/ILogger.hpp"
+#include "SDK/Interfaces/IAppMemory.hpp"
+#include "SDK/Interfaces/IApp.hpp"
+#include "SDK/Interfaces/IAppCapabilities.hpp"
+
+#include "SDK/Interfaces/ISynchManager.hpp"
+#include "SDK/Interfaces/IAppControl.hpp"
+
 #include "SDK/Interfaces/IPower.hpp"
 #include "SDK/Interfaces/ISettings.hpp"
 #include "SDK/Interfaces/IFileSystem.hpp"
-#include "SDK/Interfaces/IAppMemAllocator.hpp"
-#include "SDK/Interfaces/ISynchManager.hpp"
-#include "SDK/Interfaces/ISensorManager.hpp"
-#include "SDK/Interfaces/IApp.hpp"
-#include "SDK/Interfaces/IAppControl.hpp"
 #include "SDK/Interfaces/IBacklight.hpp"
 #include "SDK/Interfaces/IVibro.hpp"
 #include "SDK/Interfaces/IBuzzer.hpp"
-#include "SDK/Interfaces/ILogger.hpp"
-#include "SDK/Interfaces/IAppCapabilities.hpp"
+#include "SDK/Interfaces/ITime.hpp"
+
+#include "SDK/Interfaces/ISensorManager.hpp"
 
 namespace SDK::Interface
 {
@@ -48,24 +53,14 @@ namespace SDK::Interface
 class IKernel {
 public:
 
-    IKernel(SDK::Interface::IKIP&             kip,
-            SDK::Interface::IApp&             app,
-            SDK::Interface::IAppMemAllocator& mem,
-            SDK::Interface::ILogger&          log)
-        : kip(kip)
-        , app(app)
-        , mem(mem)
-        , log(log)
+    IKernel(SDK::Interface::IKIP& kip) : kip(kip)
     {}
 
     virtual ~IKernel() = default;
 
     uint32_t version = KERNEL_INTERFACE_VERSION;
 
-    SDK::Interface::IKIP&             kip;
-    SDK::Interface::IApp&             app;
-    SDK::Interface::IAppMemAllocator& mem;
-    SDK::Interface::ILogger&          log;
+    SDK::Interface::IKIP& kip;
 };
 
 } // namespace SDK::Interface

@@ -35,6 +35,7 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "SDK/Interfaces/ILogger.hpp"
 
 // Log level
 #define LOG_LEVEL_NO_LOG        0
@@ -71,6 +72,18 @@
 #define LOG_MODULE_LEVEL        LOG_LEVEL_DEBUG
 #endif
 
+/**
+ * @brief   Initialize logger with kernel logging interface.
+ *
+ * This function initializes the logger by setting the internal static
+ * pointer to the provided ILogger interface instance. It should be called
+ * once during application initialization.
+ *
+ * @param[in]   ilogger     Reference to the ILogger interface instance
+ *
+ * @note This function does nothing if the logger is already initialized.
+*/
+void Logger_init(SDK::Interface::ILogger& ilogger);
 
 /**
  * @brief   Output formatted log message with metadata.
