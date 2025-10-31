@@ -2,7 +2,6 @@
  ******************************************************************************
  * @file    FitHelper.hpp
  * @date    28-October-2025
- * @author  Oleksandr Tymoshenko <oleksandr.tymoshenko@droid-technologies.com>
  * @brief   FIT message helper class
  * 
  ******************************************************************************
@@ -27,10 +26,12 @@ FitHelper::FitHelper(uint8_t msgID, FIT_MESG_DEF* msgDef)
 	, mMsgDefBuffer()
     , mMsgDef()
 	, mDataCRC(0)
+	, mIsField(msgDef == fit_mesg_defs[FIT_MESG_FIELD_DESCRIPTION])
+    , mBaseType(FIT_FIT_BASE_TYPE_INVALID)
 {
 }
 
-bool FitHelper::init(std::initializer_list<FIT_EVENT_FIELD_NUM> fields)
+bool FitHelper::init(std::initializer_list<FIT_UINT8> fields)
 {
     if (mInited) {
         return false;
@@ -57,20 +58,59 @@ bool FitHelper::init(std::initializer_list<FIT_EVENT_FIELD_NUM> fields)
 
 bool FitHelper::writeDef(SDK::Interface::IFile* fp)
 {
-    WriteMessageDefinition(mMsgID,
-                           (const void*)mMsgDef,
-                           static_cast<FIT_UINT16>(sizeof(FIT_MESG_DEF) - FIT_FLEX_ARRAY + mMsgDef->num_fields * FIT_FIELD_DEF_SIZE),
-						   fp);
+    if (!mInited) {
+        return false;
+	}
+
+    if (mFields.size()) {
+        FIT_UINT8 header = mMsgID | FIT_HDR_TYPE_DEF_BIT | FIT_HDR_DEV_DATA_BIT;
+        WriteData(&header, FIT_HDR_SIZE, fp);
+        WriteData((const void*)mMsgDef,
+                  static_cast<FIT_UINT16>(sizeof(FIT_MESG_DEF) - FIT_FLEX_ARRAY + mMsgDef->num_fields * FIT_FIELD_DEF_SIZE),
+                  fp);
+
+        FIT_UINT8 numberFields = static_cast<FIT_UINT8>(mFields.size());
+        WriteData(&numberFields, sizeof(FIT_UINT8), fp);
+
+        for (FIT_UINT8 i = 0; i < numberFields; i++) {
+            FIT_DEV_FIELD_DEF dev_field_def{};
+
+            dev_field_def.def_num   = i;
+            dev_field_def.size      = mFields[i]->getBaseTypeSize();
+            dev_field_def.dev_index = 0;
+
+            WriteData(&dev_field_def, sizeof(FIT_DEV_FIELD_DEF), fp);
+        }
+
+    } else {
+        FIT_UINT8 header = mMsgID | FIT_HDR_TYPE_DEF_BIT;
+        WriteData(&header, FIT_HDR_SIZE, fp);
+        WriteData((const void*)mMsgDef,
+                  static_cast<FIT_UINT16>(sizeof(FIT_MESG_DEF) - FIT_FLEX_ARRAY + mMsgDef->num_fields * FIT_FIELD_DEF_SIZE),
+                  fp);
+    }
+
     return true;
 }
 
-bool FitHelper::writeData(void* data, SDK::Interface::IFile * fp)
+bool FitHelper::writeMessage(void* data, SDK::Interface::IFile * fp)
 {
-    WriteData(&mMsgID, FIT_HDR_SIZE, fp);
+    if (!mInited) {
+		return false;
+	}
 
-    const uint8_t* buff = (const uint8_t*) data;
-    for (uint8_t idx = 0; idx < mMsgDef->num_fields; ++idx) {
-        WriteData(&buff[mMsgFields[idx].offset], mMsgFields[idx].size, fp);
+    if (!mIsField) {
+		FIT_FIELD_DESCRIPTION_MESG* msg = (FIT_FIELD_DESCRIPTION_MESG*)data;
+		mBaseType = (FIT_FIT_BASE_TYPE)msg->fit_base_type_id;
+
+        WriteData(data, mMsgFields[0].size, fp);
+    } else {
+        WriteData(&mMsgID, FIT_HDR_SIZE, fp);
+
+        const uint8_t* buff = (const uint8_t*)data;
+        for (uint8_t idx = 0; idx < mMsgDef->num_fields; ++idx) {
+            WriteData(&buff[mMsgFields[idx].offset], mMsgFields[idx].size, fp);
+        }
     }
 
 	return true;
@@ -89,6 +129,48 @@ void FitHelper::printMsgDef(const FIT_MESG_DEF* msgDef)
                                   (int)msgDef->fields[FIT_MESG_DEF_FIELD_OFFSET(size, idx)],
                                   (int)msgDef->fields[FIT_MESG_DEF_FIELD_OFFSET(base_type, idx)]);
     }
+}
+
+void FitHelper::addField(FitHelper* field)
+{
+    if (field == nullptr) {
+        return;
+	}
+
+    if (std::find(mFields.begin(), mFields.end(), field) != mFields.end()) {
+        return;
+    }
+
+    mFields.push_back(field);
+}
+
+void FitHelper::writeFieldMessage(uint8_t idx, const void* data, SDK::Interface::IFile* fp)
+{
+    if (idx >= mFields.size()) {
+        return;
+    }
+ 
+    FitHelper* field = mFields[idx];
+
+	uint8_t fieldSize;
+    if (field->getBaseType() == FIT_FIT_BASE_TYPE_STRING) {
+		const char* str = (const char*)data;
+		fieldSize = static_cast<uint8_t>(strlen(str));
+	} else {
+        fieldSize = field->getBaseTypeSize();
+    }
+
+    WriteData(data, fieldSize, fp);
+}
+
+FIT_UINT8 FitHelper::getBaseTypeSize()
+{
+	return getBaseTypeSize(mBaseType);
+}
+
+FIT_FIT_BASE_TYPE FitHelper::getBaseType()
+{
+	return mBaseType;
 }
 
 bool FitHelper::isUnique(std::initializer_list<FIT_EVENT_FIELD_NUM> fields)
@@ -169,8 +251,46 @@ void FitHelper::makeMsgDef(std::initializer_list<FIT_EVENT_FIELD_NUM> fields)
     printMsgDef((const FIT_MESG_DEF*)mMsgDef);
 }
 
+FIT_UINT8 FitHelper::getBaseTypeSize(FIT_FIT_BASE_TYPE base_type)
+{
+    switch (base_type) {
+    case FIT_FIT_BASE_TYPE_ENUM:
+    case FIT_FIT_BASE_TYPE_BYTE:
+    case FIT_FIT_BASE_TYPE_SINT8:
+    case FIT_FIT_BASE_TYPE_UINT8Z:
+    case FIT_FIT_BASE_TYPE_UINT8:   return 1;
+
+    case FIT_FIT_BASE_TYPE_SINT16:
+    case FIT_FIT_BASE_TYPE_UINT16Z:
+    case FIT_FIT_BASE_TYPE_UINT16:  return 2;
+
+    case FIT_FIT_BASE_TYPE_FLOAT32:
+    case FIT_FIT_BASE_TYPE_SINT32:
+    case FIT_FIT_BASE_TYPE_UINT32Z:
+    case FIT_FIT_BASE_TYPE_UINT32:  return 4;
+
+    case FIT_FIT_BASE_TYPE_FLOAT64:
+    case FIT_FIT_BASE_TYPE_SINT64:
+    case FIT_FIT_BASE_TYPE_UINT64:
+    case FIT_FIT_BASE_TYPE_UINT64Z: return 8;
+
+    case FIT_FIT_BASE_TYPE_STRING:  return 1;
+
+    default:                        return 0;
+    }
+}
+
 void FitHelper::makeMsgFields(std::initializer_list<FIT_EVENT_FIELD_NUM> fields)
 {
+    if (mIsField) {
+        mMsgFields = std::make_unique<MsgField[]>(1);
+
+        mMsgFields[0].offset = 0;
+        mMsgFields[0].size   = getBaseTypeSize();
+
+        return;
+    }
+
     if (fields.size() == 0) {
         mMsgFields = std::make_unique<MsgField[]>(1);
 
@@ -300,8 +420,12 @@ void FitHelper::WriteMessageDefinition(FIT_UINT8 local_mesg_number, const void* 
     WriteData(mesg_def_pointer, mesg_def_size, fp);
 }
 
-void FitHelper::WriteMessageDefinitionWithDevFields(FIT_UINT8 local_mesg_number, const void* mesg_def_pointer, FIT_UINT16 mesg_def_size,
-                                                         FIT_UINT8 number_dev_fields, FIT_DEV_FIELD_DEF* dev_field_definitions, SDK::Interface::IFile* fp)
+void FitHelper::WriteMessageDefinitionWithDevFields(FIT_UINT8              local_mesg_number,
+                                                    const void*            mesg_def_pointer,
+                                                    FIT_UINT16             mesg_def_size,
+                                                    FIT_UINT8              number_dev_fields,
+                                                    FIT_DEV_FIELD_DEF*     dev_field_definitions,
+                                                    SDK::Interface::IFile* fp)
 {
     FIT_UINT16 i;
     FIT_UINT8 header = local_mesg_number | FIT_HDR_TYPE_DEF_BIT | FIT_HDR_DEV_DATA_BIT;
