@@ -2,7 +2,6 @@
  ******************************************************************************
  * @file    FitHelper.hpp
  * @date    28-October-2025
- * @author  Oleksandr Tymoshenko <oleksandr.tymoshenko@droid-technologies.com>
  * @brief   FIT message helper class
  * 
  ******************************************************************************
@@ -24,6 +23,7 @@ extern "C" {
 #include <cstdbool>
 #include <initializer_list>
 #include <memory>
+#include <vector>
 
 namespace SDK::Component {
 
@@ -32,12 +32,21 @@ namespace SDK::Component {
     public:
         FitHelper(uint8_t msgID, FIT_MESG_DEF* msgDef);
 
-        bool init(std::initializer_list<FIT_EVENT_FIELD_NUM> fields = {});
+        bool init(std::initializer_list<FIT_UINT8> fields = {});
 
         bool writeDef(SDK::Interface::IFile* fp);
-        bool writeData(void* data, SDK::Interface::IFile* fp);
+        
+        bool writeMessage(void* data, SDK::Interface::IFile* fp);
 
         void printMsgDef(const FIT_MESG_DEF* msgDef);
+
+		void addField(FitHelper* field);
+
+		void writeFieldMessage(uint8_t idx, const void* data, SDK::Interface::IFile* fp);
+
+        FIT_UINT8 getBaseTypeSize();
+
+        FIT_FIT_BASE_TYPE FitHelper::getBaseType();
 
     private:
         FitHelper(const FitHelper&)            = delete;
@@ -45,6 +54,8 @@ namespace SDK::Component {
         
         FitHelper(FitHelper&&)            = delete;
         FitHelper& operator=(FitHelper&&) = delete;
+
+        FIT_UINT8 getBaseTypeSize(FIT_FIT_BASE_TYPE base_type);
 
         bool isUnique(std::initializer_list<FIT_EVENT_FIELD_NUM> fields);
         bool isValid(std::initializer_list<FIT_EVENT_FIELD_NUM> fields);
@@ -75,13 +86,16 @@ namespace SDK::Component {
             uint16_t size;
         };
 
-        bool                         mInited;
-        uint8_t                      mMsgID;
-        FIT_MESG_DEF*                mMsgDefOrigin;
-        std::unique_ptr<uint8_t[]>   mMsgDefBuffer;
-        FIT_MESG_DEF*                mMsgDef;
-        std::unique_ptr<MsgField[]>  mMsgFields;
-        FIT_UINT16                   mDataCRC;
+        bool                        mInited;
+        uint8_t                     mMsgID;
+        FIT_MESG_DEF*               mMsgDefOrigin;
+        std::unique_ptr<uint8_t[]>  mMsgDefBuffer;
+        FIT_MESG_DEF*               mMsgDef;
+        std::unique_ptr<MsgField[]> mMsgFields;
+        FIT_UINT16                  mDataCRC;
+        bool                        mIsField;
+        FIT_FIT_BASE_TYPE           mBaseType;
+		std::vector<FitHelper*>     mFields;
     };
 
 }
