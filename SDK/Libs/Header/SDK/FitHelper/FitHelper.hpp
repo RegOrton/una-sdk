@@ -31,7 +31,10 @@ namespace SDK::Component {
     {
     public:
         FitHelper(uint8_t msgID, FIT_MESG_DEF* msgDef);
-        FitHelper(uint8_t msgID, FitHelper& container, FIT_UINT8 itemsCount = 1, FIT_UINT8 devIndex = 0);
+        FitHelper(uint8_t                           msgID,
+                  std::initializer_list<FitHelper*> container,
+                  FIT_UINT8                         itemsCount = 1,
+                  FIT_UINT8                         devIndex = 0);
 
         bool init(std::initializer_list<FIT_UINT8> fields = {});
 

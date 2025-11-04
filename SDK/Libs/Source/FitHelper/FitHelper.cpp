@@ -49,13 +49,13 @@ namespace SDK::Component {
      * with a fixed number of base-type elements (e.g., bytes for STRING fields).
      *
      * @param msgID      Local message number for this field.
-     * @param container  Parent FitHelper to which this field belongs.
+     * @param container  Parent FitHelpers list to which this field belongs.
      * @param itemsCount Number of elements.
      */
-    FitHelper::FitHelper(uint8_t    msgID,
-                         FitHelper& container,
-                         FIT_UINT8  itemsCount,
-                         FIT_UINT8  devIndex)
+    FitHelper::FitHelper(uint8_t                           msgID,
+                         std::initializer_list<FitHelper*> container,
+                         FIT_UINT8                         itemsCount,
+                         FIT_UINT8                         devIndex)
         : mInited(false)
         , mMsgID(msgID)
         , mMsgDefOrigin((FIT_MESG_DEF*)fit_mesg_defs[FIT_MESG_FIELD_DESCRIPTION])
@@ -67,7 +67,11 @@ namespace SDK::Component {
         , mDevelopIndex(devIndex)
         , mUserFields()
     {
-        container.addField(this);
+		for (auto c : container) {
+            if (c) {
+                c->addField(this);
+            }
+        }
     }
 
     /**
@@ -258,7 +262,7 @@ namespace SDK::Component {
      */
     FIT_UINT8 FitHelper::getFieldSize()
     {
-        return getItemsCount() * getBaseTypeSize(mBaseType);
+        return getItemsCount() * getBaseTypeSize();
     }
 
     /**
@@ -471,9 +475,7 @@ namespace SDK::Component {
                     return UINT8_MAX;
                 }
 
-                FIT_UINT8 fieldSize = mMsgDefOrigin->fields[FIT_MESG_DEF_FIELD_OFFSET(size, idx)];
-
-                return fieldSize;
+                return mMsgDefOrigin->fields[FIT_MESG_DEF_FIELD_OFFSET(size, idx)];
             }
         }
 
