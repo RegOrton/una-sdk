@@ -184,17 +184,21 @@ namespace SDK::Component {
      */
     void FitHelper::printMsgDef(const FIT_MESG_DEF* msgDef)
     {
-        LOG_INFO("reserved_1      = %d\n", (int) msgDef->reserved_1);
-        LOG_INFO("arch            = %d\n", (int) msgDef->arch);
-        LOG_INFO("global_mesg_num = %d\n", (int) msgDef->global_mesg_num);
-        LOG_INFO("num_fields      = %d\n", (int) msgDef->num_fields);
+#if LOG_MODULE_LEVEL == LOG_LEVEL_DEBUG
+        LOG_DEBUG("reserved_1      = %d\n", (int) msgDef->reserved_1);
+        LOG_DEBUG("arch            = %d\n", (int) msgDef->arch);
+        LOG_DEBUG("global_mesg_num = %d\n", (int) msgDef->global_mesg_num);
+        LOG_DEBUG("num_fields      = %d\n", (int) msgDef->num_fields);
 
-        LOG_INFO("  ID SIZE TYPE\n");
+        LOG_DEBUG("  ID SIZE TYPE\n");
         for (uint8_t idx = 0; idx < msgDef->num_fields; ++idx) {
-            LOG_INFO("%4d %4d %4d\n", (int)msgDef->fields[FIT_MESG_DEF_FIELD_OFFSET(field_def_num, idx)], 
-                                      (int)msgDef->fields[FIT_MESG_DEF_FIELD_OFFSET(size, idx)],
-                                      (int)msgDef->fields[FIT_MESG_DEF_FIELD_OFFSET(base_type, idx)]);
+            LOG_DEBUG("%4d %4d %4d\n", (int)msgDef->fields[FIT_MESG_DEF_FIELD_OFFSET(field_def_num, idx)],
+                                       (int)msgDef->fields[FIT_MESG_DEF_FIELD_OFFSET(size, idx)],
+                                       (int)msgDef->fields[FIT_MESG_DEF_FIELD_OFFSET(base_type, idx)]);
         }
+#else
+        (void) msgDef;
+#endif
     }
 
     /**
