@@ -28,6 +28,11 @@ namespace SDK::SensorDataParser
     class StepDetector
     {
     public:
+        enum Field : uint8_t {
+            kStepDetected = 0,  ///< Step is detected (always 1)
+            kCount              ///< Total number of fields
+        };
+
         /**
          * @brief Construct a new StepCounter parser over given ISensorData
          * @param data Reference to sensor data containing 1 field
@@ -78,14 +83,6 @@ namespace SDK::SensorDataParser
         }
 
     private:
-        /**
-         * @brief Field layout indices
-         */
-        enum Field : uint8_t {
-            kStepDetected = 0,  ///< Step is detected (always 1)
-            kCount              ///< Total number of fields
-        };
-
         const Interface::ISensorData* mData;
     }; /* class StepCounter */
 
