@@ -31,6 +31,16 @@ namespace SDK
         {
         public:
             /**
+             * @brief Field layout indices
+             */
+            enum Field : uint8_t {
+                X = 0, ///< Axis X
+                Y,     ///< Axis Y
+                Z,     ///< Axis Z
+                COUNT  ///< Number of fields
+            };
+
+            /**
              * @brief Construct a new Accelerometer parser over given ISensorData
              * @param data Reference to sensor data containing 1 int16 value
              */
@@ -96,16 +106,6 @@ namespace SDK
             }
 
         private:
-            /**
-             * @brief Field layout indices
-             */
-            enum Field : uint8_t {
-                X = 0, ///< Axis X
-                Y,     ///< Axis Y
-                Z,     ///< Axis Z
-                COUNT  ///< Number of fields
-            };
-
             /**
              * @brief Reference to sensor data storage
              */

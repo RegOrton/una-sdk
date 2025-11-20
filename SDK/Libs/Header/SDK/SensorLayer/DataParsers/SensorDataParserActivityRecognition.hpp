@@ -34,6 +34,15 @@ class ActivityRecognition
 {
 public:
     /**
+     * @brief Field layout indices.
+     */
+    enum Field : uint8_t {
+        kID = 0,        ///< Activity identifier (see @ref Activity)
+        kCONFIDENCE,    ///< Confidence in percent [0..100]
+        kCOUNT          ///< Number of fields (must be last)
+    };
+
+    /**
      * @brief Activity identifier values.
      */
     enum class Activity : uint8_t {
@@ -134,15 +143,6 @@ public:
     }
 
 private:
-    /**
-     * @brief Field layout indices.
-     */
-    enum Field : uint8_t {
-        kID = 0,        ///< Activity identifier (see @ref Activity)
-        kCONFIDENCE,    ///< Confidence in percent [0..100]
-        kCOUNT          ///< Number of fields (must be last)
-    };
-
     const Interface::ISensorData* mData { nullptr };
 }; /* class ActivityRecognition */
 
