@@ -29,6 +29,11 @@ namespace SensorDataParser {
 class BatteryLevel
 {
 public:
+    enum Field : uint8_t {
+        LEVEL = 0,    ///< Raw charge value (units are device-specific)
+        COUNT          ///< Number of fields (must be last)
+    };
+
     /**
      * @brief   SensorData parser for the Battery Level sensor
      * @param data Reference to sensor data
@@ -50,9 +55,9 @@ public:
     bool isDataValid() const
     {
         return (mData != nullptr) &&
-               (mData->getLength() == static_cast<uint8_t>(Field::kCOUNT) &&
-               (mData->getAsFloat(static_cast<uint8_t>(Field::kCHARGE)) >= 0.0) &&
-               (mData->getAsFloat(static_cast<uint8_t>(Field::kCHARGE)) <= 100.0));
+               (mData->getLength() == static_cast<uint8_t>(Field::COUNT) &&
+               (mData->getAsFloat(static_cast<uint8_t>(Field::LEVEL)) >= 0.0) &&
+               (mData->getAsFloat(static_cast<uint8_t>(Field::LEVEL)) <= 100.0));
     }
 
     /**
@@ -67,7 +72,7 @@ public:
             return -1.0f;
         }
 
-        return mData->getAsFloat(static_cast<uint8_t>(Field::kCHARGE));
+        return mData->getAsFloat(static_cast<uint8_t>(Field::LEVEL));
     }
 
     /**
@@ -94,18 +99,10 @@ public:
      */
     static constexpr uint8_t getFieldsNumber()
     {
-        return static_cast<uint8_t>(Field::kCOUNT);
+        return static_cast<uint8_t>(Field::COUNT);
     }
 
 private:
-    /**
-     * @brief   SensorData parser for the Battery Level sensor
-     */
-    enum Field : uint8_t {
-        kCHARGE = 0,    ///< Raw charge value (units are device-specific)
-        kCOUNT          ///< Number of fields (must be last)
-    };
-
     const Interface::ISensorData* mData { nullptr };
 }; /* class Power */
 

@@ -30,6 +30,12 @@ namespace SDK
         class FloorCounter
         {
         public:
+            enum Field : uint8_t {
+                FLOORS_UP = 0,  ///< Signed floorsUp counter (int32_t)
+                FLOORS_DOWN,    ///< Signed floorsDown counter (int32_t)
+                COUNT          ///< Total number of fields
+            };
+
             /**
              * @brief Construct a new FloorCounter parser over given ISensorData
              * @param data Reference to sensor data containing 2 int32_t field
@@ -49,7 +55,7 @@ namespace SDK
              */
             bool isDataValid() const
             {
-                return (mData != nullptr) && (mData->getLength() == Field::kCount);
+                return (mData != nullptr) && (mData->getLength() == Field::COUNT);
             }
 
             /**
@@ -58,7 +64,7 @@ namespace SDK
              */
             int32_t getFloorsUp() const
             {
-                return isDataValid() ? mData->getAsI32(Field::kFloorsUp) : 0;
+                return isDataValid() ? mData->getAsI32(Field::FLOORS_UP) : 0;
             }
 
             /**
@@ -67,7 +73,7 @@ namespace SDK
              */
             int32_t getFloorsDown() const
             {
-                return isDataValid() ? mData->getAsI32(Field::kFloorsDown) : 0;
+                return isDataValid() ? mData->getAsI32(Field::FLOORS_DOWN) : 0;
             }
 
             /**
@@ -93,19 +99,10 @@ namespace SDK
              */
             static constexpr uint8_t getFieldsNumber()
             {
-                return Field::kCount;
+                return Field::COUNT;
             }
 
         private:
-            /**
-             * @brief Field layout indices
-             */
-            enum Field : uint8_t {
-                kFloorsUp = 0,  ///< Signed floorsUp counter (int32_t)
-                kFloorsDown,    ///< Signed floorsDown counter (int32_t)
-                kCount          ///< Total number of fields
-            };
-
             const Interface::ISensorData* mData;
         }; /* class FloorCounter */
     }; /* namespace SensorDataParser */

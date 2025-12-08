@@ -28,6 +28,11 @@ namespace SensorDataParser {
 class Pressure
 {
 public:
+    enum Field : uint8_t {
+        PRESS = 0,   ///< Pressure value (units are device-specific)
+        COUNT        ///< Number of fields (must be last)
+    };
+
     /**
      * @brief   Construct parser from a reference to sensor data
      * @param   data Reference to sensor data
@@ -89,14 +94,6 @@ public:
     }
 
 private:
-    /**
-     * @brief   Fields for the Pressure sensor
-     */
-    enum Field : uint8_t {
-        PRESS = 0,   ///< Pressure value (units are device-specific)
-        COUNT        ///< Number of fields (must be last)
-    };
-
     const Interface::ISensorData* mData { nullptr };
 }; /* class Pressure */
 
