@@ -30,6 +30,15 @@ namespace SDK::SensorDataParser {
 class BatteryMetrics
 {
 public:
+    enum Field : uint8_t {
+        VOLTAGE = 0,      ///< Battery voltage (V)
+        CURRENT,          ///< Instantaneous current (mA); sign per firmware contract
+        AVERAGE_CURRENT,  ///< Averaged/filtered current (mA)
+        CAPACITY,         ///< Remaining capacity (mAh)
+        DESIGN_CAPACITY,  ///< Full charge (design) capacity (mAh)
+        COUNT             ///< Number of fields (must be last)
+    };
+
     /**
      * @brief   SensorData parser for the Battery Metrics (V/I/mAh) sensor
      * @param data Reference to sensor data with
@@ -53,7 +62,7 @@ public:
     bool isDataValid() const
     {
         return (mData != nullptr) &&
-               (mData->getLength() == static_cast<uint8_t>(Field::kCOUNT));
+               (mData->getLength() == static_cast<uint8_t>(Field::COUNT));
     }
 
     /**
@@ -70,7 +79,7 @@ public:
             return -1.0f;
         }
 
-        return mData->getAsFloat(static_cast<uint8_t>(Field::kVOLTAGE));
+        return mData->getAsFloat(static_cast<uint8_t>(Field::VOLTAGE));
     }
         
     /**
@@ -83,7 +92,7 @@ public:
             return 0.0f;
         }
 
-        return mData->getAsFloat(static_cast<uint8_t>(Field::kCURRENT));
+        return mData->getAsFloat(static_cast<uint8_t>(Field::CURRENT));
     }
 
     /**
@@ -96,7 +105,7 @@ public:
             return 0.0f;
         }
         
-        return mData->getAsFloat(static_cast<uint8_t>(Field::kAVERAGE_CURRENT));
+        return mData->getAsFloat(static_cast<uint8_t>(Field::AVERAGE_CURRENT));
     }
 
     /**
@@ -109,7 +118,7 @@ public:
             return -1.0f;
         }
         
-        return mData->getAsFloat(static_cast<uint8_t>(Field::kCAPACITY));
+        return mData->getAsFloat(static_cast<uint8_t>(Field::CAPACITY));
     }
 
     /**
@@ -122,7 +131,7 @@ public:
             return -1.0f;
         }
         
-        return mData->getAsFloat(static_cast<uint8_t>(Field::kDESIGN_CAPACITY));
+        return mData->getAsFloat(static_cast<uint8_t>(Field::DESIGN_CAPACITY));
     }
 
     /**
@@ -149,22 +158,10 @@ public:
      */
     static constexpr uint8_t getFieldsNumber()
     {
-        return static_cast<uint8_t>(Field::kCOUNT);
+        return static_cast<uint8_t>(Field::COUNT);
     }
 
 private:
-    /**
-     * @brief   SensorData parser for the Battery Metrics (V/I/mAh) sensor
-     */
-    enum Field : uint8_t {
-        kVOLTAGE = 0,      ///< Battery voltage (V)
-        kCURRENT,          ///< Instantaneous current (mA); sign per firmware contract
-        kAVERAGE_CURRENT,  ///< Averaged/filtered current (mA)
-        kCAPACITY,         ///< Remaining capacity (mAh)
-        kDESIGN_CAPACITY,  ///< Full charge (design) capacity (mAh)
-        kCOUNT             ///< Number of fields (must be last)
-    };
-
     const Interface::ISensorData* mData { nullptr };
 }; /* class BatteryMetrics */
 

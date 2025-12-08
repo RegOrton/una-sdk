@@ -30,10 +30,14 @@ public:
                          uint32_t                             latency = 0) = 0;
 
     virtual void disconnect(SDK::Interface::ISensorDataListener* listener) = 0;
-    
+
     virtual SDK::Sensor::Type getType() const = 0;
 
-    virtual float getRefreshPeriod() const { return mRefreshPeriod; }
+
+    virtual float getRefreshPeriod() const
+    {
+        return mRefreshPeriod;
+    }
 
 protected:
     float mRefreshPeriod;
