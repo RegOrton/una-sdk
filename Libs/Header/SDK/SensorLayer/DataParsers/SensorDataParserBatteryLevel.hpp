@@ -13,7 +13,7 @@
 #ifndef __SENSOR_DATA_PARSER_BATTERY_LEVEL_HPP
 #define __SENSOR_DATA_PARSER_BATTERY_LEVEL_HPP
 
-#include "SDK/Interfaces/ISensorData.hpp"
+#include "SDK/SensorLayer/SensorDataView.hpp"
 
 #include <cstdint>
 
@@ -38,13 +38,7 @@ public:
      * @brief   SensorData parser for the Battery Level sensor
      * @param data Reference to sensor data
      */
-    explicit BatteryLevel(const Interface::ISensorData& data) : mData(&data) {}
-
-    /**
-     * @brief   SensorData parser for the Battery Level sensor
-     * @param data Pointer to sensor data
-     */
-    explicit BatteryLevel(const Interface::ISensorData* data) : mData(data) {}
+    explicit BatteryLevel(const SDK::Sensor::DataView& data) : mData(data) {}
 
     /**
      * @brief   SensorData parser for the Battery Level sensor
@@ -54,10 +48,9 @@ public:
  * It does not own the underlying storage.*/
     bool isDataValid() const
     {
-        return (mData != nullptr) &&
-               (mData->getLength() == static_cast<uint8_t>(Field::COUNT) &&
-               (mData->getAsFloat(static_cast<uint8_t>(Field::LEVEL)) >= 0.0) &&
-               (mData->getAsFloat(static_cast<uint8_t>(Field::LEVEL)) <= 100.0));
+        return ((mData.getFieldCount() == Field::COUNT) &&
+                (mData.f[Field::LEVEL] >= 0.0) &&
+                (mData.f[Field::LEVEL] <= 100.0));
     }
 
     /**
@@ -68,11 +61,7 @@ public:
  * It does not own the underlying storage.*/
     float getCharge() const
     {
-        if (!isDataValid()) {
-            return -1.0f;
-        }
-
-        return mData->getAsFloat(static_cast<uint8_t>(Field::LEVEL));
+        return isDataValid() ? mData.f[Field::LEVEL] : -1.0f;
     }
 
     /**
@@ -81,7 +70,7 @@ public:
      */
     uint32_t getTimestamp() const
     {
-        return (mData != nullptr) ? mData->getTimestamp() : 0U;
+        return isDataValid() ? mData.getTimestamp() : 0U;
     }
 
     /**
@@ -90,7 +79,7 @@ public:
      */
     uint64_t getTimestampUs() const
     {
-        return isDataValid() ? mData->getTimestampUs() : 0;
+        return isDataValid() ? mData.getTimestampUs() : 0;
     }
 
     /**
@@ -99,11 +88,11 @@ public:
      */
     static constexpr uint8_t getFieldsNumber()
     {
-        return static_cast<uint8_t>(Field::COUNT);
+        return Field::COUNT;
     }
 
 private:
-    const Interface::ISensorData* mData { nullptr };
+    const SDK::Sensor::DataView& mData;
 }; /* class Power */
 
 } /* namespace SensorDataParser */

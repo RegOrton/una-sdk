@@ -13,7 +13,7 @@
 #ifndef __SENSOR_DATA_PARSER_FLOOR_COUNTER_HPP
 #define __SENSOR_DATA_PARSER_FLOOR_COUNTER_HPP
 
-#include "SDK/Interfaces/ISensorData.hpp"
+#include "SDK/SensorLayer/SensorDataView.hpp"
 
 #include <cstdint>
 
@@ -40,14 +40,7 @@ namespace SDK
              * @brief Construct a new FloorCounter parser over given ISensorData
              * @param data Reference to sensor data containing 2 int32_t field
              */
-            FloorCounter(const Interface::ISensorData& data) : mData(&data) {}
-
-            /**
-             * @brief Construct a new FloorCounter parser over given ISensorData
-             * @param data Pointer to sensor data containing 2 int32_t field
-             */
-            FloorCounter(const Interface::ISensorData* data) : mData(data) {}
-
+            FloorCounter(const SDK::Sensor::DataView& data) : mData(data) {}
 
             /**
              * @brief Check if data is valid (should contain exactly 1 field)
@@ -55,7 +48,7 @@ namespace SDK
              */
             bool isDataValid() const
             {
-                return (mData != nullptr) && (mData->getLength() == Field::COUNT);
+                return (mData.getFieldCount() == Field::COUNT);
             }
 
             /**
@@ -64,7 +57,7 @@ namespace SDK
              */
             int32_t getFloorsUp() const
             {
-                return isDataValid() ? mData->getAsI32(Field::FLOORS_UP) : 0;
+                return isDataValid() ? mData.i[Field::FLOORS_UP] : 0;
             }
 
             /**
@@ -73,7 +66,7 @@ namespace SDK
              */
             int32_t getFloorsDown() const
             {
-                return isDataValid() ? mData->getAsI32(Field::FLOORS_DOWN) : 0;
+                return isDataValid() ? mData.i[Field::FLOORS_DOWN] : 0;
             }
 
             /**
@@ -82,7 +75,7 @@ namespace SDK
              */
             uint32_t getTimestamp() const
             {
-                return isDataValid() ? mData->getTimestamp() : 0;
+                return isDataValid() ? mData.getTimestamp() : 0;
             }
 
 	    /**
@@ -91,7 +84,7 @@ namespace SDK
 	     */
 	    uint64_t getTimestampUs() const
 	    {
-        	return isDataValid() ? mData->getTimestampUs() : 0;
+        	return isDataValid() ? mData.getTimestampUs() : 0;
 	    }
             
             /**
@@ -103,7 +96,7 @@ namespace SDK
             }
 
         private:
-            const Interface::ISensorData* mData;
+            const SDK::Sensor::DataView& mData;
         }; /* class FloorCounter */
     }; /* namespace SensorDataParser */
 

@@ -53,12 +53,12 @@ struct DataView
         }
     };
 
-    DataView(const SDK::Sensor::Data& data, uint16_t length)
-        : mData(data)
-        , mFieldCount(fieldCount)
-        , f{data, fieldCount}
+    DataView(const SDK::Sensor::Data& data, uint16_t fieldCount)
+        : f{data, fieldCount}
         , u{data, fieldCount}
         , i{data, fieldCount}
+        , mData(data)
+        , mFieldCount(fieldCount)
     {}
 
     uint32_t getTimestamp() const noexcept
