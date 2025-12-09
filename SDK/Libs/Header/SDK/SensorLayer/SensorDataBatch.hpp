@@ -18,7 +18,7 @@
 
 #include <assert.h>
 
-namespace SDL::Sensor
+namespace SDK::Sensor
 {
     class DataBatch
     {
@@ -41,10 +41,10 @@ namespace SDL::Sensor
         {
             assert(idx < mCount);
 
-            const uint8_t* ptr = mBase + idx * mStride;
-            auto* raw          = reinterpret_cast<const SDK::Sensor::Data*>(ptr);
+            const auto* ptr = reinterpret_cast<const uint8_t*>(mBase) + idx * mStride;
+            const auto* raw = reinterpret_cast<const SDK::Sensor::Data*>(ptr);
 
-            return SDK::Sensor::DataView(*raw, mLength);
+            return SDK::Sensor::DataView(*raw, mFieldCount);
         }
 
     private:

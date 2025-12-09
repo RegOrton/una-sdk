@@ -28,7 +28,7 @@ class ISensorDataListener
 public:
     virtual ~ISensorDataListener() = default;
 
-    virtual void onSdlNewData(uint16_t                 sensor,
+    virtual void onSdlNewData(uint16_t                 handle,
                               const SDK::Sensor::Data* base,
                               uint16_t                 count,
                               uint16_t                 stride) = 0;

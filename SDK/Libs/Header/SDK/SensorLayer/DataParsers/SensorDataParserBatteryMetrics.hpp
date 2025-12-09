@@ -13,7 +13,7 @@
 #ifndef __SENSOR_DATA_PARSER_BATTERY_METRICS_HPP
 #define __SENSOR_DATA_PARSER_BATTERY_METRICS_HPP
 
-#include "SDK/Interfaces/ISensorData.hpp"
+#include "SDK/SensorLayer/SensorDataView.hpp"
 
 #include <cstdint>
 
@@ -43,13 +43,7 @@ public:
      * @brief   SensorData parser for the Battery Metrics (V/I/mAh) sensor
      * @param data Reference to sensor data with
      */
-    explicit BatteryMetrics(const Interface::ISensorData& data) : mData(&data) {}
-
-    /**
-     * @brief   SensorData parser for the Battery Metrics (V/I/mAh) sensor
-     * @param data Pointer to sensor data
-     */
-    explicit BatteryMetrics(const Interface::ISensorData* data) : mData(data) {}
+    explicit BatteryMetrics(const SDK::Sensor::DataView& data) : mData(data) {}
 
     /**
      * @brief   SensorData parser for the Battery Metrics (V/I/mAh) sensor
@@ -61,8 +55,7 @@ public:
      */
     bool isDataValid() const
     {
-        return (mData != nullptr) &&
-               (mData->getLength() == static_cast<uint8_t>(Field::COUNT));
+        return (mData.getFieldCount() == Field::COUNT);
     }
 
     /**
@@ -75,11 +68,7 @@ public:
      */
     float getVoltage() const
     {
-        if (!isDataValid()) {
-            return -1.0f;
-        }
-
-        return mData->getAsFloat(static_cast<uint8_t>(Field::VOLTAGE));
+        return isDataValid() ? mData.f[Field::VOLTAGE] : -1.0f;
     }
         
     /**
@@ -88,11 +77,7 @@ public:
      */
     float getCurrent() const
     {
-        if (!isDataValid()) {
-            return 0.0f;
-        }
-
-        return mData->getAsFloat(static_cast<uint8_t>(Field::CURRENT));
+        return isDataValid() ? mData.f[Field::CURRENT] : 0.0f;
     }
 
     /**
@@ -101,11 +86,7 @@ public:
      */
     float getAverageCurrent() const
     {
-        if (!isDataValid()) {
-            return 0.0f;
-        }
-        
-        return mData->getAsFloat(static_cast<uint8_t>(Field::AVERAGE_CURRENT));
+        return isDataValid() ? mData.f[Field::AVERAGE_CURRENT] : 0.0f;
     }
 
     /**
@@ -114,11 +95,7 @@ public:
      */
     float getCapacity() const
     {
-        if (!isDataValid()) {
-            return -1.0f;
-        }
-        
-        return mData->getAsFloat(static_cast<uint8_t>(Field::CAPACITY));
+        return isDataValid() ? mData.f[Field::CAPACITY] : -1.0f;
     }
 
     /**
@@ -127,11 +104,7 @@ public:
      */
     float getDesignCapacity() const
     {
-        if (!isDataValid()) {
-            return -1.0f;
-        }
-        
-        return mData->getAsFloat(static_cast<uint8_t>(Field::DESIGN_CAPACITY));
+        return isDataValid() ? mData.f[Field::DESIGN_CAPACITY] : -1.0f;
     }
 
     /**
@@ -140,7 +113,7 @@ public:
      */
     uint32_t getTimestamp() const
     {
-        return (mData != nullptr) ? mData->getTimestamp() : 0U;
+        return isDataValid() ? mData.getTimestamp() : 0U;
     }
 
     /**
@@ -149,7 +122,7 @@ public:
      */
     uint64_t getTimestampUs() const
     {
-        return isDataValid() ? mData->getTimestampUs() : 0;
+        return isDataValid() ? mData.getTimestampUs() : 0;
     }
 
     /**
@@ -158,11 +131,11 @@ public:
      */
     static constexpr uint8_t getFieldsNumber()
     {
-        return static_cast<uint8_t>(Field::COUNT);
+        return Field::COUNT;
     }
 
 private:
-    const Interface::ISensorData* mData { nullptr };
+    const SDK::Sensor::DataView& mData;
 }; /* class BatteryMetrics */
 
 } /* namespace SDK::SensorDataParser */
