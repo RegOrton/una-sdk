@@ -145,6 +145,31 @@ namespace SDK::Glance {
         size_t size() { return mControls.size(); }
 
         /**
+         * @brief Check if the form needs to be redraw.
+         * @return True The form needs to be redraw.
+         */
+        bool isInvalid()
+        {
+            for (GlanceControl_t &f : mControls) {
+                if (!f.valid) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * @brief Mark the form valid.
+         * @return True The form needs to be redraw.
+         */
+        void setValid()
+        {
+            for (GlanceControl_t &f : mControls) {
+                f.valid = true;
+            }
+        }
+
+        /**
          * @brief Returns a raw pointer to the underlying contiguous array.
          * @return Pointer to the first element, or `nullptr` if the form is empty.
          *
@@ -193,6 +218,7 @@ namespace SDK::Glance {
         std::size_t append(GlanceType_t t)
         {
             GlanceControl_t c{};
+            c.id = mControls.size();    // id is a position in vector
             c.type = t;
             
             mControls.push_back(c);
