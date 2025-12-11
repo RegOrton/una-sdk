@@ -1,29 +1,28 @@
 /**
  ******************************************************************************
- * @file    SensorDriverConnection.cpp
+ * @file    SensorConnection.cpp
  * @date    17-September-2025
  * @author  Oleksandr Tymoshenko <oleksandr.tymoshenko@droid-technologies.com>
- * @brief   Connection to the SensorDriver
+ * @brief   Connection to the Sensor
  * 
  ******************************************************************************
  *
  ******************************************************************************
  */
 
-#include "SDK/SensorLayer/SensorDriverConnection.hpp"
-//#include "SDK/Kernel/KernelProviderService.hpp"
-#include "SensorLayer/SensorManager.hpp"
+#define LOG_MODULE_PRX      "Service"
+#define LOG_MODULE_LEVEL    LOG_LEVEL_DEBUG
+#include "SDK/UnaLogger/Logger.h"
+
+#include "SDK/SensorLayer/SensorConnection.hpp"
+#include "SDK/Kernel/KernelProviderService.hpp"
+#include "SDK/Messages/SensorLayerMessages.hpp"
+#include "SDK/Messages/SensorLayerMessages.hpp"
+#include "SDK/Messages/MessageGuard.hpp"
+
+#include <stdlib.h>
 
 namespace SDK::Sensor {
-
-DriverConnection::DriverConnection()
-    : mDriver(nullptr)
-    , mListener(nullptr)
-    , mPeriod(0)
-    , mLatency(0)
-    , mUserApp(nullptr)
-    , mIsConnected(false)
-{}
 
 /**
  * @brief Construct a connection wrapper for a sensor driver.
@@ -39,15 +38,16 @@ DriverConnection::DriverConnection()
  * @pre `kernel` must be initialized.
  * @note Use @ref isValid() to check that an underlying driver was found.
  */
-DriverConnection::DriverConnection(SDK::Sensor::Type                    id,
-                                   SDK::Interface::ISensorDataListener* listener,
-                                   float                                period,
-                                   uint32_t                             latency)
-    : mDriver(::Sensor::Manager::getInstance().getDefaultSensor(id))
-    , mListener(listener)
+Connection::Connection(SDK::Sensor::Type                    id,
+                       SDK::Interface::ISensorDataListener* listener,
+                       float                                period,
+                       uint32_t                             latency)
+    : mKernel(SDK::KernelProviderService::GetInstance().getKernel())
+    , mID(id)
+    , mHandle(0)
+    , mListener(nullptr)
     , mPeriod(period)
     , mLatency(latency)
-    , mUserApp(nullptr)
     , mIsConnected(false)
 {}
 
@@ -63,42 +63,17 @@ DriverConnection::DriverConnection(SDK::Sensor::Type                    id,
  *
  * @pre `driver` must be valid and compatible with the listener.
  */
-DriverConnection::DriverConnection(SDK::Interface::ISensorDriver*       driver,
-                                   SDK::Interface::ISensorDataListener* listener,
-                                   float                                period,
-                                   uint32_t                             latency)
-    : mDriver(driver)
-    , mListener(listener)
-    , mPeriod(period)
-    , mLatency(latency)
-    , mUserApp(nullptr)
-    , mIsConnected(false)
-{}
 
-/**
- * @brief Construct a connection wrapper using an explicit driver and application context.
- *
- * Stores the provided driver, listener, and application pointer along with connection parameters
- * for subsequent @ref connect() calls.
- *
- * @param driver   Pointer to the sensor driver to use.
- * @param listener Pointer to a data listener (must remain valid while connected).
- * @param app      Pointer to the application context (used for driver registration or callbacks).
- * @param period   Desired sampling/update period (units as defined by the driver; commonly seconds).
- * @param latency  Maximum report latency/batching tolerance (units as defined by the driver; commonly milliseconds).
- *
- * @pre `driver`, `listener`, and `app` must remain valid during the connection lifetime.
- */
-DriverConnection::DriverConnection(SDK::Interface::ISensorDriver*       driver,
-                                   SDK::Interface::ISensorDataListener* listener,
-                                   SDK::Interface::IApp*                app,
-                                   float                                period,
-                                   uint32_t                             latency)
-    : mDriver(driver)
-    , mListener(listener)
+Connection::Connection(uint8_t                              handle,
+                       SDK::Interface::ISensorDataListener* listener,
+                       float                                period,
+                       uint32_t                             latency)
+    : mKernel(SDK::KernelProviderService::GetInstance().getKernel())
+    , mID(SDK::Sensor::Type::UNKNOWN)
+    , mHandle(handle)
+    , mListener(nullptr)
     , mPeriod(period)
     , mLatency(latency)
-    , mUserApp(app)
     , mIsConnected(false)
 {}
 
@@ -106,9 +81,9 @@ DriverConnection::DriverConnection(SDK::Interface::ISensorDriver*       driver,
  * @brief Check whether the underlying driver has been resolved.
  * @return `true` if a driver pointer is available, otherwise `false`.
  */
-bool DriverConnection::isValid()
+bool Connection::isValid()
 {
-    return (mDriver != nullptr);
+    return (mHandle != 0);
 }
 
 /**
@@ -119,17 +94,75 @@ bool DriverConnection::isValid()
  * @return `true` on successful connection, `false` if no driver is available or the driver rejects the request.
  * @see connect(float,uint32_t)
  */
-bool DriverConnection::connect()
+bool Connection::connect()
 {
+//    bool status;
+
     if (!isValid()) {
+//        status = false;
+//        auto* reqDefaultSensor = mKernel.comm.allocateMessage<SDK::Message::Sensor::RequestDefault>();
+//        if (reqDefaultSensor) {
+//            reqDefaultSensor->id = mID;
+//
+//            status = mKernel.comm.sendMessage(reqDefaultSensor, 100);
+//
+//            if (status && reqDefaultSensor->getResult() == SDK::MessageResult::SUCCESS) {
+//                mHandle = reqDefaultSensor->handle;
+//            } else {
+//                status = false;
+//            }
+//
+//            mKernel.comm.releaseMessage(reqDefaultSensor);
+//        }
+//
+//        if (!status) {
+//            return false;
+//        }
+        auto req = make_msg<SDK::Message::Sensor::RequestDefault>(mKernel.comm);
+        if (!req) {
+            return false;
+        }
+
+        req->id = mID;
+
+        if (!req.send(100) || !req.ok()) {
+            return false;
+        }
+
+        mHandle = req->handle;
+    }
+
+//    status = false;
+//
+//    auto* reqConnect = mKernel.comm.allocateMessage<SDK::Message::Sensor::RequestConnect>();
+//    if (reqConnect) {
+//        reqConnect->handle   = mHandle;
+//        reqConnect->listener = mListener;
+//        reqConnect->period   = mPeriod;
+//        reqConnect->latency  = mLatency;
+//
+//        status = mKernel.comm.sendMessage(reqConnect, 100);
+//
+//        if (status && reqConnect->getResult() == SDK::MessageResult::SUCCESS) {
+//            mIsConnected = true;
+//        }
+//
+//        mKernel.comm.releaseMessage(reqConnect);
+//    }
+
+    auto reqConnect = make_msg<SDK::Message::Sensor::RequestConnect>(mKernel.comm);
+    if (!reqConnect) {
         return false;
     }
 
-    if (mIsConnected) {
-        return false;
-    }
+    reqConnect->handle   = mHandle;
+    reqConnect->listener = mListener;
+    reqConnect->period   = mPeriod;
+    reqConnect->latency  = mLatency;
 
-    mIsConnected = mDriver->connect(mListener, nullptr, mPeriod, mLatency);
+    if (reqConnect.send(100) || reqConnect.ok()) {
+        mIsConnected = true;
+    }
 
     return mIsConnected;
 }
@@ -143,7 +176,7 @@ bool DriverConnection::connect()
  * @param latency  Maximum report latency/batching tolerance (units as defined by the driver).
  * @return `true` on successful connection, otherwise `false`.
  */
-bool DriverConnection::connect(float period, uint32_t latency)
+bool Connection::connect(float period, uint32_t latency)
 {
     if (!isValid()) {
         return false;
@@ -159,25 +192,7 @@ bool DriverConnection::connect(float period, uint32_t latency)
     return connect();
 }
 
-bool DriverConnection::connect(SDK::Interface::ISensorDriver*       driver,
-                               SDK::Interface::ISensorDataListener* listener,
-                               float                                period,
-                               uint32_t                             latency)
-{
-    if (isConnected()) {
-        return false;
-    }
-
-    mDriver   = driver;
-    mListener = listener;
-    mPeriod   = period;
-    mLatency  = latency;
-
-    return connect();
-}
-
-
-bool DriverConnection::isConnected()
+bool Connection::isConnected()
 {
     return mIsConnected;
 }
@@ -188,7 +203,7 @@ bool DriverConnection::isConnected()
  * Safe to call even if the connection is not valid or already disconnected.
  * If no driver is available, the call is a no-op.
  */
-void DriverConnection::disconnect()
+void Connection::disconnect()
 {
     if (!isValid()) {
         return;
@@ -198,7 +213,15 @@ void DriverConnection::disconnect()
         return;
     }
 
-    mDriver->disconnect(mListener);
+    auto request = make_msg<SDK::Message::Sensor::RequestDisconnect>(mKernel.comm);
+    if (!request) {
+        return;
+    }
+
+    request->handle   = mHandle;
+    request->listener = mListener;
+
+    request.send();
 
     mIsConnected = false;
 }
@@ -215,17 +238,17 @@ void DriverConnection::disconnect()
  * @return true  If the specified driver is the same as the one managed by this connection.
  * @return false If either pointer is null or they do not match.
  */
-bool DriverConnection::matchesDriver(const SDK::Interface::ISensorDriver* driver)
+bool Connection::matchesDriver(uint16_t handle)
 {
     if (!isValid()) {
         return false;
     }
 
-    if (driver == nullptr) {
+    if (handle == 0) {
         return false;
     }
 
-    return mDriver == driver;
+    return mHandle == handle;
 }
 
 } // namespace SDK::Sensors
