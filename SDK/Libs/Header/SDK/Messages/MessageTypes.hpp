@@ -97,8 +97,8 @@ namespace MessageType {
     // Sensor Layer (Service only)
     constexpr Type REQUEST_SENSOR_LAYER_GET_DEFAULT    = 0x03100000;
     constexpr Type REQUEST_SENSOR_LAYER_GET_LIST       = 0x03110000;
-    constexpr Type REQUEST_SENSOR_LAYER_GET_DESCRIPTOR = 0x03110000;
-    constexpr Type REQUEST_SENSOR_LAYER_CONNECT        = 0x03120000;
+    constexpr Type REQUEST_SENSOR_LAYER_GET_DESCRIPTOR = 0x03120000;
+    constexpr Type REQUEST_SENSOR_LAYER_CONNECT        = 0x03130000;
     constexpr Type REQUEST_SENSOR_LAYER_DISCONNECT     = 0x03140000;
     // Sensor Layer data
     constexpr Type EVENT_SENSOR_LAYER_DATA_1           = 0x03180000;
