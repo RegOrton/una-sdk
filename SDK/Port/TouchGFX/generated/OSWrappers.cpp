@@ -19,9 +19,9 @@
 #include <cassert>
 #include <touchgfx/hal/HAL.hpp>
 #include <touchgfx/hal/OSWrappers.hpp>
-#include "SDK/Kernel/KernelProviderGUI.hpp"
 
-#include "SDK/Interfaces/IKernel.hpp"
+#include "SDK/Port/TouchGFX/TouchGFXCommandProcessor.hpp"
+#include "SDK/Kernel/KernelProviderGUI.hpp"
 
 using namespace touchgfx;
 
@@ -103,7 +103,7 @@ void OSWrappers::signalRenderingDone()
  */
 void OSWrappers::waitForVSync()
 {
-    SDK::KernelProviderGUI::GetInstance().getKernel().app.waitForFrame();
+    SDK::TouchGFXCommandProcessor::GetInstance().waitForFrameTick();
 }
 
 /*
@@ -121,7 +121,7 @@ void OSWrappers::waitForVSync()
  */
 void OSWrappers::taskDelay(uint16_t ms)
 {
-    SDK::KernelProviderGUI::GetInstance().getKernel().system.delay(static_cast<uint32_t>(ms));
+    SDK::KernelProviderGUI::GetInstance().getKernel().sys.delay(static_cast<uint32_t>(ms));
 }
 
 /**
@@ -136,7 +136,7 @@ void OSWrappers::taskDelay(uint16_t ms)
  */
 void OSWrappers::taskYield()
 {
-    SDK::KernelProviderGUI::GetInstance().getKernel().system.yield();
+    SDK::KernelProviderGUI::GetInstance().getKernel().sys.yield();
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
