@@ -292,7 +292,7 @@ struct RequestBacklightSet : public MessageBase {
  */
 struct RequestBuzzerPlay : public MessageBase {
     // Maximum Notes includes pauses.
-    static const uint8_t skMaxNotes = 10;
+    static const uint32_t skMaxNotes = 10;
 
     struct Note {
         uint32_t time = 100;    // Duration in ms
@@ -300,6 +300,7 @@ struct RequestBuzzerPlay : public MessageBase {
     };
 
     Note notes[skMaxNotes];
+    uint32_t notesCount;
 
     RequestBuzzerPlay()
         : MessageBase(MessageType::REQUEST_BUZZER_PLAY)
@@ -337,7 +338,7 @@ struct RequestVibroPlay : public MessageBase {
     };
 
     // Maximum Notes includes pauses.
-    static const uint8_t skMaxNotes = 8;
+    static const uint32_t skMaxNotes = 8;
 
     struct Note {
         uint8_t  effect;    // 1 - 127,  0 - for pause
@@ -345,10 +346,11 @@ struct RequestVibroPlay : public MessageBase {
     };
 
     Note notes[skMaxNotes];
+    uint32_t notesCount;
 
     RequestVibroPlay()
         : MessageBase(MessageType::REQUEST_VIBRO_PLAY)
-        , notes {}
+        , notes {}, notesCount(0)
     {}
 };
 
