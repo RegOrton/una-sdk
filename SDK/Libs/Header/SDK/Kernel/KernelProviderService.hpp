@@ -26,7 +26,7 @@ namespace SDK {
 class KernelProviderService
 {
 public:
-    static KernelProviderService& CreateInstance(const SDK::Kernel* kernel)
+    static KernelProviderService& CreateInstance(SDK::Kernel* kernel)
     {
         static bool initialized;
 
@@ -47,7 +47,7 @@ public:
         return mInstance;
     }
 
-    const SDK::Kernel& getKernel()
+    SDK::Kernel& getKernel()
     {
         return *mKernel;
     }
@@ -56,12 +56,12 @@ private:
     KernelProviderService() : mKernel(nullptr)
     {}
 
-    void init(const SDK::Kernel* kernel)
+    void init(SDK::Kernel* kernel)
     {
         mKernel = kernel;
     }
     
-    const SDK::Kernel* mKernel;
+    SDK::Kernel* mKernel;
 };
 
 } // namespace SDK
