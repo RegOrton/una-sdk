@@ -47,6 +47,7 @@ void TouchGFXCommandProcessor::waitForFrameTick()
     }
 
     SDK::MessageBase *msg = nullptr;
+    bool messageQueued = false;
 
     while (true) {
 
@@ -72,6 +73,7 @@ void TouchGFXCommandProcessor::waitForFrameTick()
                 if (mAppLifeCycleCallback) {
                     mAppLifeCycleCallback->onFrame();
                 }
+                LOG_DEBUG("called\n");
                 return; // Allow TouchGFX make frame
             } break;
 
@@ -95,20 +97,22 @@ void TouchGFXCommandProcessor::waitForFrameTick()
 
 
             default:
-
-                if (SDK::isApplicationSpecificMessage(msg->getType())) {
-                    bool result = false;
-                    if (mCustomMessageHandler) {
-                        result = mCustomMessageHandler->customMessageHandler(msg);
-                    }
-                    msg->setResult(result ? SDK::MessageResult::SUCCESS :  SDK::MessageResult::ERROR);
+                if (SDK::isApplicationSpecificMessage(msg->getType()) &&
+                        mCustomMessageHandler &&
+                        mUserQueue.push(msg))
+                {
+                    messageQueued = true;
+                } else {
+                    msg->setResult(SDK::MessageResult::ERROR);
                     mKernel.comm.sendResponse(msg);
                 }
                 break;
         }
 
-        // Release message after processing
-        mKernel.comm.releaseMessage(msg);
+        if (!messageQueued) {
+            // Release message after processing
+            mKernel.comm.releaseMessage(msg);
+        }
     }
 
 }
@@ -121,6 +125,7 @@ bool TouchGFXCommandProcessor::getKeySample(uint8_t &key)
 
 void TouchGFXCommandProcessor::writeDisplayFrameBuffer(const uint8_t* data)
 {
+    LOG_DEBUG("called\n");
     if (!data || !mIsGuiResumed) {
         return;
     }
@@ -130,6 +135,21 @@ void TouchGFXCommandProcessor::writeDisplayFrameBuffer(const uint8_t* data)
         msg->pBuffer = data;
         mKernel.comm.sendMessage(msg);
         mKernel.comm.releaseMessage(msg);
+    }
+}
+
+void TouchGFXCommandProcessor::callCustomHandler()
+{
+    auto msg = mUserQueue.pop();
+
+    if (msg) {
+        LOG_DEBUG("called. Message 0x%08X\n", (*msg)->getType());
+        bool result = false;
+        if (mCustomMessageHandler) {
+            result = mCustomMessageHandler->customMessageHandler(*msg);
+        }
+        (*msg)->setResult(result ? SDK::MessageResult::SUCCESS :  SDK::MessageResult::ERROR);
+        mKernel.comm.sendResponse(*msg);
     }
 }
 
