@@ -18,11 +18,14 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <queue>
 
 #include "SDK/Kernel/Kernel.hpp"
 #include "SDK/Messages/CommandMessages.hpp"
 #include "SDK/Interfaces/IGuiLifeCycleCallback.hpp"
 #include "SDK/Interfaces/ICustomMessageHandler.hpp"
+#include "SDK/Messages/MessageBase.hpp"
+#include "SDK/Tools/FixedQueue.hpp"
 
 namespace SDK
 {
@@ -54,6 +57,8 @@ public:
 
     void writeDisplayFrameBuffer(const uint8_t* data);
 
+    void callCustomHandler();
+
 private:
 
     TouchGFXCommandProcessor();
@@ -69,6 +74,7 @@ private:
     uint8_t mLastButtonCode;
     SDK::Interface::IGuiLifeCycleCallback *mAppLifeCycleCallback;
     SDK::Interface::ICustomMessageHandler *mCustomMessageHandler;
+    SDK::Tools::FixedQueue<SDK::MessageBase*, 20> mUserQueue;
 
     void handleEvent(SDK::Message::EventButton* msg);
 
