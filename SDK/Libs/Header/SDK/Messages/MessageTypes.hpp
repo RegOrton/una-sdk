@@ -97,14 +97,11 @@ namespace MessageType {
     // Sensor Layer (Service only)
     constexpr Type REQUEST_SENSOR_LAYER_GET_DEFAULT    = 0x03100000;
     constexpr Type REQUEST_SENSOR_LAYER_GET_LIST       = 0x03110000;
-    constexpr Type REQUEST_SENSOR_LAYER_GET_DESCRIPTOR = 0x03110000;
-    constexpr Type REQUEST_SENSOR_LAYER_CONNECT        = 0x03120000;
+    constexpr Type REQUEST_SENSOR_LAYER_GET_DESCRIPTOR = 0x03120000;
+    constexpr Type REQUEST_SENSOR_LAYER_CONNECT        = 0x03130000;
     constexpr Type REQUEST_SENSOR_LAYER_DISCONNECT     = 0x03140000;
     // Sensor Layer data
-    constexpr Type EVENT_SENSOR_LAYER_DATA_1           = 0x03180000;
-    constexpr Type EVENT_SENSOR_LAYER_DATA_2           = 0x03190000;
-    constexpr Type EVENT_SENSOR_LAYER_DATA_3           = 0x031A0000;
-    constexpr Type EVENT_SENSOR_LAYER_DATA_4           = 0x031B0000;
+    constexpr Type EVENT_SENSOR_LAYER_DATA             = 0x03180000;
 
     // Application-specific custom messages (Service <-> GUI direct, used by DualAppComm)
     constexpr Type RANGE_APP_SPECIFIC_MIN       = 0x00000000;
