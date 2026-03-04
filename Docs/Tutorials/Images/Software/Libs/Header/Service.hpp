@@ -4,8 +4,11 @@
 #include "Commands.hpp"
 #include "SDK/Kernel/KernelProviderService.hpp"
 #include "SDK/Interfaces/ISensorDataListener.hpp"
+#include "SDK/Interfaces/IFileSystem.hpp"
 #include "SDK/SensorLayer/SensorConnection.hpp"
 #include "SDK/SensorLayer/SensorDataBatch.hpp"
+#include <vector>
+#include <string>
 
 class Service
 {
@@ -20,6 +23,11 @@ private:
     SDK::Kernel&             mKernel;
     CustomMessage::GUISender mSender;
     bool                     mGUIStarted;
+
+    // Image handling
+    SDK::Interface::IFileSystem& mFileSystem;
+    std::vector<std::string> mImageList;
+    std::string mAppFolderPath;
 
     /*
      * COMMENTED OUT: Heart Rate Sensor and FIT Logging Setup
@@ -49,6 +57,12 @@ private:
     void onStopGUI();
 
     void onSdlNewData(uint16_t handle, SDK::Sensor::DataBatch& data);
+
+    // Image methods
+    void scanImageFolder();
+    void sendImageList();
+    void loadImage(const std::string& filename);
+    void getImageMetadata(const std::string& filename);
 
     static uint32_t ParseVersion(const char* str);
 };

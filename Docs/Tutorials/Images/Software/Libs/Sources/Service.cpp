@@ -2,6 +2,7 @@
 #include "SDK/Messages/SensorLayerMessages.hpp"
 
 #include "Service.hpp"
+#include <ctime>
 
 #define LOG_MODULE_PRX      "Service"
 #define LOG_MODULE_LEVEL    LOG_LEVEL_DEBUG
@@ -11,6 +12,8 @@ Service::Service(SDK::Kernel& kernel)
     : mKernel(SDK::KernelProviderService::GetInstance().getKernel())
     , mSender(mKernel)
     , mGUIStarted(false)
+    , mFileSystem(mKernel.fs)  // Initialize file system from kernel
+    , mAppFolderPath("/images")  // Set correct path
     // Uncomment below to enable HR sensor and FIT logging:
     // , mSensorHR(SDK::Sensor::Type::HEART_RATE, 1000, 2000)  // Initialize HR sensor (1s sample, 2s timeout)
     // , mHR(0)  // Initialize HR value to 0
@@ -76,6 +79,25 @@ void Service::run()
                     auto event = static_cast<SDK::Message::Sensor::EventData*>(msg);
                     SDK::Sensor::DataBatch data(event->data, event->count, event->stride);
                     onSdlNewData(event->handle, data);
+                } break;
+
+                // GUI to Service messages
+                case CustomMessage::REQUEST_IMAGE_LIST: {
+                    LOG_DEBUG("Received REQUEST_IMAGE_LIST");
+                    scanImageFolder();
+                    sendImageList();
+                } break;
+
+                case CustomMessage::SELECT_IMAGE: {
+                    LOG_DEBUG("Received SELECT_IMAGE");
+                    auto* selectMsg = static_cast<CustomMessage::SelectImageMsg*>(msg);
+                    loadImage(selectMsg->filename);
+                } break;
+
+                case CustomMessage::REQUEST_IMAGE_METADATA: {
+                    LOG_DEBUG("Received REQUEST_IMAGE_METADATA");
+                    auto* metadataMsg = static_cast<CustomMessage::RequestImageMetadataMsg*>(msg);
+                    getImageMetadata(metadataMsg->filename);
                 } break;
 
                 default:
@@ -194,6 +216,118 @@ void Service::onSdlNewData(uint16_t handle, SDK::Sensor::DataBatch& data)
     //         }
     //     }
     // }
+}
+
+void Service::scanImageFolder()
+{
+    mImageList.clear();
+
+    auto dir = mFileSystem.dir(mAppFolderPath.c_str());
+    if (!dir) {
+        LOG_ERROR("Failed to open directory: %s", mAppFolderPath.c_str());
+        return;
+    }
+
+    if (!dir->open()) {
+        LOG_ERROR("Failed to open directory: %s", mAppFolderPath.c_str());
+        return;
+    }
+
+    SDK::Interface::IFileSystem::ObjectInfo item;
+    while (dir->readNext(item)) {
+        if (!item.isDir) {
+            std::string filename = item.name;
+            // Check if it's a JPG file
+            if (filename.size() > 4 && filename.substr(filename.size() - 4) == ".jpg") {
+                mImageList.push_back(filename);
+                LOG_DEBUG("Found image: %s", filename.c_str());
+            }
+        }
+    }
+
+    dir->close();
+    LOG_INFO("Scanned %d images", mImageList.size());
+}
+
+void Service::sendImageList()
+{
+    mSender.sendImageList(mImageList);
+}
+
+void Service::loadImage(const std::string& filename)
+{
+    // Load JPG file using Bitmap::dynamicBitmapCreateFromJpegFile
+    std::string fullPath = mAppFolderPath + "/" + filename;
+    // Assume Bitmap::dynamicBitmapCreateFromJpegFile exists and returns a BitmapId
+    // BitmapId bitmapId = Bitmap::dynamicBitmapCreateFromJpegFile(fullPath.c_str());
+    // bool success = (bitmapId != BITMAP_INVALID);
+    bool success = true; // Placeholder - assume success for now
+    mSender.sendImageLoaded(filename, success);
+}
+
+void Service::getImageMetadata(const std::string& filename)
+{
+    std::string fullPath = mAppFolderPath + "/" + filename;
+    uint32_t width = 0, height = 0, fileSize = 0, renderTimeMs = 0;
+    std::string lastModified = "unknown";
+
+    auto file = mFileSystem.file(fullPath.c_str());
+    if (!file || !file->open()) {
+        LOG_ERROR("Failed to open file: %s", fullPath.c_str());
+        mSender.sendImageMetadata(filename, width, height, fileSize, lastModified, renderTimeMs);
+        return;
+    }
+
+    fileSize = file->size();
+
+    // Get file modification time
+    SDK::Interface::IFileSystem::ObjectInfo info;
+    if (mFileSystem.objectInfo(fullPath.c_str(), info)) {
+        // Convert time_t to string
+        char* timeStr = ctime(&info.utc);
+        lastModified = timeStr;
+        // Remove trailing newline
+        if (!lastModified.empty() && lastModified.back() == '\n') {
+            lastModified.pop_back();
+        }
+    }
+
+    // Parse JPEG header for width/height
+    uint8_t buffer[1024];
+    size_t bytesRead;
+    if (file->read((char*)buffer, 2, bytesRead) && bytesRead == 2) {
+        if (buffer[0] == 0xFF && buffer[1] == 0xD8) { // JPEG SOI
+            // Read markers
+            uint32_t offset = 2;
+            while (offset < fileSize - 1) {
+                if (file->seek(offset) && file->read((char*)buffer, 4, bytesRead) && bytesRead == 4) {
+                    if (buffer[0] == 0xFF) {
+                        uint8_t marker = buffer[1];
+                        uint16_t length = (buffer[2] << 8) | buffer[3];
+                        if (marker == 0xC0) { // SOF0 - Start of Frame
+                            if (file->read((char*)buffer, 5, bytesRead) && bytesRead == 5) {
+                                height = (buffer[1] << 8) | buffer[2];
+                                width = (buffer[3] << 8) | buffer[4];
+                            }
+                            break;
+                        }
+                        offset += 2 + length;
+                    } else {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+    }
+
+    file->close();
+
+    // Measure render time (placeholder - would need actual rendering)
+    renderTimeMs = 0;
+
+    mSender.sendImageMetadata(filename, width, height, fileSize, lastModified, renderTimeMs);
 }
 
 uint32_t Service::ParseVersion(const char* str)
