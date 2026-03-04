@@ -34,6 +34,8 @@ project(${APP_NAME})
 # Set up version
 una_app_setup_version(BUILD_VERSION ${CMAKE_CURRENT_SOURCE_DIR})
 
+# set(CMAKE_VERBOSE_MAKEFILE on)
+
 # Build service
 set(SERVICE_SOURCES
     ${LIBS_SOURCES}
