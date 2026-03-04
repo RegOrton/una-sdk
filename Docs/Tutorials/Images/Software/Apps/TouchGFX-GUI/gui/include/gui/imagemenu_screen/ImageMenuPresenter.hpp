@@ -25,6 +25,11 @@ public:
      */
     virtual void deactivate();
 
+    void gotoImageList();
+    void gotoImageViewer();
+    void gotoImageProp();
+    void back();
+
     virtual ~ImageMenuPresenter() {}
 
 private:

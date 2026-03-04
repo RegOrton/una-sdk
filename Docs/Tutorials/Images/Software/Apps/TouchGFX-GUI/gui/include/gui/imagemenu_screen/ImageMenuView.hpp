@@ -11,6 +11,9 @@ public:
     virtual ~ImageMenuView() {}
     virtual void setupScreen();
     virtual void tearDownScreen();
+
+    void handleKeyEvent(uint8_t key);
+
 protected:
 };
 
