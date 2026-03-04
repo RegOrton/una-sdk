@@ -19,11 +19,14 @@ Service::Service(SDK::Kernel& kernel)
     // , mHR(0)  // Initialize HR value to 0
     // , mHRTL(0)  // Initialize HR trust level to 0
     // , mActivityWriter(mKernel, "Activity")  // Initialize FIT writer with "Activity" directory
-{}
+{
+    LOG_INFO("Service constructor: Initializing service with kernel reference, message sender, GUI state set to false, file system access, and app folder path set to '/images'");
+}
 
 void Service::run()
 {
     LOG_INFO("thread started\n");
+    LOG_INFO("Service run method: Starting the main service loop to process messages and handle application lifecycle");
 
     /*
      * To enable HR sensor and FIT logging:
@@ -52,13 +55,16 @@ void Service::run()
     // uint32_t startTimeMs = mKernel.sys.getTimeMs();
 
     while (true) {
+        LOG_DEBUG("Service loop iteration: Waiting for incoming messages with 1000ms timeout");
         SDK::MessageBase *msg;
         if (mKernel.comm.getMessage(msg, 1000)) {
+            LOG_DEBUG("Message received, processing message type: %d", msg->getType());
             // Command handling
             switch (msg->getType()) {
                 // Kernel messages
                 case SDK::MessageType::COMMAND_APP_STOP:
                     LOG_INFO("Force exit from the application\n");
+                    LOG_INFO("Handling app stop command: Preparing to exit service thread");
                     // mSensorHR.disconnect();  // Commented out: Disconnect HR sensor
                     // We must release message because this is the last event.
                     mKernel.comm.releaseMessage(msg);
@@ -66,11 +72,13 @@ void Service::run()
 
                 case SDK::MessageType::COMMAND_APP_NOTIF_GUI_RUN:
                     LOG_INFO("GUI is now running\n");
+                    LOG_INFO("GUI start notification received: Initializing GUI-related operations");
                     onStartGUI();
                     break;
 
                 case SDK::MessageType::COMMAND_APP_NOTIF_GUI_STOP:
                     LOG_INFO("GUI has stopped\n");
+                    LOG_INFO("GUI stop notification received: Cleaning up GUI-related resources");
                     onStopGUI();
                     break;
 
@@ -78,12 +86,15 @@ void Service::run()
                 case SDK::MessageType::EVENT_SENSOR_LAYER_DATA: {
                     auto event = static_cast<SDK::Message::Sensor::EventData*>(msg);
                     SDK::Sensor::DataBatch data(event->data, event->count, event->stride);
+                    LOG_DEBUG("Sensor data event received: Processing sensor data batch with handle %u", event->handle);
+                    LOG_DEBUG("Data batch contains %u samples", data.size());
                     onSdlNewData(event->handle, data);
                 } break;
 
                 // GUI to Service messages
                 case CustomMessage::REQUEST_IMAGE_LIST: {
                     LOG_DEBUG("Received REQUEST_IMAGE_LIST");
+                    LOG_INFO("Image list request: Scanning directory for images and preparing to send list");
                     scanImageFolder();
                     sendImageList();
                 } break;
@@ -91,12 +102,16 @@ void Service::run()
                 case CustomMessage::SELECT_IMAGE: {
                     LOG_DEBUG("Received SELECT_IMAGE");
                     auto* selectMsg = static_cast<CustomMessage::SelectImageMsg*>(msg);
+                    LOG_DEBUG("Image selection request for file: %s", selectMsg->filename);
+                    LOG_INFO("Loading selected image file");
                     loadImage(selectMsg->filename);
                 } break;
 
                 case CustomMessage::REQUEST_IMAGE_METADATA: {
                     LOG_DEBUG("Received REQUEST_IMAGE_METADATA");
                     auto* metadataMsg = static_cast<CustomMessage::RequestImageMetadataMsg*>(msg);
+                    LOG_DEBUG("Metadata request for file: %s", metadataMsg->filename);
+                    LOG_INFO("Retrieving image metadata");
                     getImageMetadata(metadataMsg->filename);
                 } break;
 
@@ -106,8 +121,10 @@ void Service::run()
 
             // Release message after processing
             mKernel.comm.releaseMessage(msg);
+            LOG_DEBUG("Message processing complete, releasing message");
         }
 
+        LOG_INFO("Note: FIT logging is commented out; uncomment to enable activity data recording");
         /*
          * FIT Record Logging (every second while GUI is active):
          * - Checks if GUI is started (mGUIStarted)
@@ -175,12 +192,14 @@ void Service::run()
 
     // mSensorHR.disconnect();  // Disconnect HR sensor
 
+    LOG_INFO("Service run method: Exiting main loop, thread stopping");
     LOG_INFO("thread stopped\n");
 }
 
 void Service::onStartGUI()
 {
     LOG_INFO("GUI started\n");
+    LOG_INFO("Setting GUI started flag to true, enabling GUI-dependent operations");
     mGUIStarted = true;
     /*
      * Send initial HR values to GUI on startup.
@@ -193,6 +212,7 @@ void Service::onStartGUI()
 void Service::onStopGUI()
 {
     LOG_INFO("GUI stopped\n");
+    LOG_INFO("Setting GUI started flag to false, disabling GUI-dependent operations");
     mGUIStarted = false;
 }
 
@@ -205,7 +225,26 @@ void Service::onSdlNewData(uint16_t handle, SDK::Sensor::DataBatch& data)
      * - Send updates to GUI via custom message
      * To enable: Uncomment below, ensure sensor is connected, and message types defined
      */
+    // LOG_INFO("Sensor data received: Checking if handle matches HR sensor");
     // if (mSensorHR.matchesDriver(handle)) {  // Verify data is from HR sensor
+    //     LOG_DEBUG("HR sensor data matched, handle: %u", handle);
+    //     if (mGUIStarted) {  // Only process if GUI is running
+    //         LOG_DEBUG("GUI is active, parsing HR data");
+    //         SDK::SensorDataParser::HeartRate parser(data[0]);  // Parse first batch
+    //         if (parser.isDataValid()) {  // Check if data is valid
+    //             LOG_DEBUG("HR data valid: BPM=%f, TrustLevel=%f", parser.getBpm(), parser.getTrustLevel());
+    //             mHR   = parser.getBpm();  // Extract BPM
+    //             mHRTL = parser.getTrustLevel();  // Extract trust level
+
+    //             mSender.updateHeartRate(mHR, mHRTL);  // Send to GUI
+    //             LOG_INFO("Updated GUI with new HR data");
+    //         } else {
+    //             LOG_DEBUG("HR data invalid, skipping update");
+    //         }
+    //     } else {
+    //         LOG_DEBUG("GUI not active, ignoring HR data");
+    //     }
+    // }
     //     if (mGUIStarted) {  // Only process if GUI is running
     //         SDK::SensorDataParser::HeartRate parser(data[0]);  // Parse first batch
     //         if (parser.isDataValid()) {  // Check if data is valid
@@ -220,8 +259,10 @@ void Service::onSdlNewData(uint16_t handle, SDK::Sensor::DataBatch& data)
 
 void Service::scanImageFolder()
 {
+    LOG_INFO("Starting image folder scan: Clearing previous image list");
     mImageList.clear();
 
+    LOG_DEBUG("Attempting to open directory: %s", mAppFolderPath.c_str());
     auto dir = mFileSystem.dir(mAppFolderPath.c_str());
     if (!dir) {
         LOG_ERROR("Failed to open directory: %s", mAppFolderPath.c_str());
@@ -233,44 +274,56 @@ void Service::scanImageFolder()
         return;
     }
 
+    LOG_DEBUG("Directory opened successfully, reading contents");
     SDK::Interface::IFileSystem::ObjectInfo item;
     while (dir->readNext(item)) {
         if (!item.isDir) {
+            LOG_DEBUG("File found: %s", item.name);
             std::string filename = item.name;
             // Check if it's a JPG file
             if (filename.size() > 4 && filename.substr(filename.size() - 4) == ".jpg") {
+                LOG_DEBUG("JPG file detected, adding to image list: %s", filename.c_str());
                 mImageList.push_back(filename);
                 LOG_DEBUG("Found image: %s", filename.c_str());
             }
         }
     }
 
+    LOG_DEBUG("Directory scan complete, closing directory");
     dir->close();
     LOG_INFO("Scanned %d images", mImageList.size());
 }
 
 void Service::sendImageList()
 {
+    LOG_INFO("Sending image list to GUI: %d images available", mImageList.size());
     mSender.sendImageList(mImageList);
 }
 
 void Service::loadImage(const std::string& filename)
 {
+    LOG_INFO("Loading image: %s", filename.c_str());
     // Load JPG file using Bitmap::dynamicBitmapCreateFromJpegFile
     std::string fullPath = mAppFolderPath + "/" + filename;
+    LOG_DEBUG("Constructing full file path: %s", fullPath.c_str());
     // Assume Bitmap::dynamicBitmapCreateFromJpegFile exists and returns a BitmapId
     // BitmapId bitmapId = Bitmap::dynamicBitmapCreateFromJpegFile(fullPath.c_str());
     // bool success = (bitmapId != BITMAP_INVALID);
     bool success = true; // Placeholder - assume success for now
+    LOG_DEBUG("Placeholder: Assuming image load success (actual implementation would use Bitmap::dynamicBitmapCreateFromJpegFile)");
+    LOG_INFO("Image load result: Success (placeholder), notifying GUI");
     mSender.sendImageLoaded(filename, success);
 }
 
 void Service::getImageMetadata(const std::string& filename)
 {
+    LOG_INFO("Retrieving metadata for image: %s", filename.c_str());
     std::string fullPath = mAppFolderPath + "/" + filename;
+    LOG_DEBUG("Full file path: %s", fullPath.c_str());
     uint32_t width = 0, height = 0, fileSize = 0, renderTimeMs = 0;
     std::string lastModified = "unknown";
 
+    LOG_DEBUG("Attempting to open file for metadata extraction");
     auto file = mFileSystem.file(fullPath.c_str());
     if (!file || !file->open()) {
         LOG_ERROR("Failed to open file: %s", fullPath.c_str());
@@ -279,8 +332,10 @@ void Service::getImageMetadata(const std::string& filename)
     }
 
     fileSize = file->size();
+    LOG_DEBUG("File opened successfully, size: %u bytes", fileSize);
 
     // Get file modification time
+    LOG_DEBUG("Retrieving file modification time");
     SDK::Interface::IFileSystem::ObjectInfo info;
     if (mFileSystem.objectInfo(fullPath.c_str(), info)) {
         // Convert time_t to string
@@ -290,24 +345,30 @@ void Service::getImageMetadata(const std::string& filename)
         if (!lastModified.empty() && lastModified.back() == '\n') {
             lastModified.pop_back();
         }
+        LOG_DEBUG("Last modified time retrieved: %s", lastModified.c_str());
     }
 
     // Parse JPEG header for width/height
+    LOG_DEBUG("Parsing JPEG header to extract dimensions");
     uint8_t buffer[1024];
     size_t bytesRead;
     if (file->read((char*)buffer, 2, bytesRead) && bytesRead == 2) {
         if (buffer[0] == 0xFF && buffer[1] == 0xD8) { // JPEG SOI
+            LOG_DEBUG("JPEG file confirmed, parsing markers");
             // Read markers
             uint32_t offset = 2;
             while (offset < fileSize - 1) {
+                LOG_DEBUG("Scanning for SOF0 marker at offset %u", offset);
                 if (file->seek(offset) && file->read((char*)buffer, 4, bytesRead) && bytesRead == 4) {
                     if (buffer[0] == 0xFF) {
                         uint8_t marker = buffer[1];
                         uint16_t length = (buffer[2] << 8) | buffer[3];
                         if (marker == 0xC0) { // SOF0 - Start of Frame
+                            LOG_DEBUG("SOF0 marker found, extracting width and height");
                             if (file->read((char*)buffer, 5, bytesRead) && bytesRead == 5) {
                                 height = (buffer[1] << 8) | buffer[2];
                                 width = (buffer[3] << 8) | buffer[4];
+                                LOG_DEBUG("Dimensions extracted: %u x %u pixels", width, height);
                             }
                             break;
                         }
@@ -322,17 +383,21 @@ void Service::getImageMetadata(const std::string& filename)
         }
     }
 
+    LOG_DEBUG("Closing file after metadata extraction");
     file->close();
 
     // Measure render time (placeholder - would need actual rendering)
     renderTimeMs = 0;
 
+    LOG_INFO("Metadata retrieved successfully: File size %u bytes, Dimensions %u x %u, Last modified %s", fileSize, width, height, lastModified.c_str());
     mSender.sendImageMetadata(filename, width, height, fileSize, lastModified, renderTimeMs);
 }
 
 uint32_t Service::ParseVersion(const char* str)
 {
+    LOG_DEBUG("Parsing version string: '%s'", str ? str : "null");
     if (str == nullptr) {
+        LOG_DEBUG("Input string is null, returning default version 0");
         return 0;
     }
 
@@ -346,6 +411,7 @@ uint32_t Service::ParseVersion(const char* str)
     } FirmwareVersion_t;
 
     FirmwareVersion_t v{};
+    LOG_DEBUG("Attempting to parse version components using sscanf");
 
     int major, minor, patch;
 
@@ -353,8 +419,11 @@ uint32_t Service::ParseVersion(const char* str)
         v.major = static_cast<uint8_t>(major);
         v.minor = static_cast<uint8_t>(minor);
         v.patch = static_cast<uint8_t>(patch);
+        LOG_DEBUG("Version parsed successfully: Major %d, Minor %d, Patch %d", major, minor, patch);
+        LOG_DEBUG("Packing version into uint32_t: 0x%08X", v.u32);
         return v.u32;
     }
 
+    LOG_DEBUG("Failed to parse version string, returning 0");
     return 0;
 }
