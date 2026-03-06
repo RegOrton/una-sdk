@@ -3,14 +3,7 @@
 
 ImagePropView::ImagePropView()
 {
-
-}
-
-void ImagePropView::setupScreen()
-{
-    ImagePropViewBase::setupScreen();
-
-    add(menu);
+    
     menu.setPosition(0, 0, 240, 240);
     menu.setNumberOfItems(4);
 
@@ -52,8 +45,16 @@ void ImagePropView::setupScreen()
     pN = menu.getNotSelectedItem(3);
     pN->config(T_OPACITY);
     pN->setIcon(BITMAP_OPACITY_ID);
+    
+    // menu.invalidate();
+    add(menu);
+}
 
-    menu.invalidate();
+void ImagePropView::setupScreen()
+{
+    menu.initialize();
+    ImagePropViewBase::setupScreen();
+
 }
 
 void ImagePropView::tearDownScreen()
