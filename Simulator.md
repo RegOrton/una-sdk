@@ -57,13 +57,26 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
 ### Simation Buzzer
 1. Action Buzzer print to Terminal in the form of a log. For example:
    ```cpp
-  -I- Mock.Buzzer::play::39               : [0] time=150 ms, level=3
-  -I- Mock.Buzzer::play::39               : [1] time=100 ms, level=0
-  -I- Mock.Buzzer::play::39               : [2] time=150 ms, level=3
+   I- Mock.Buzzer::play::39               : [0] time=150 ms, level=3
+   I- Mock.Buzzer::play::39               : [1] time=100 ms, level=0
+   I- Mock.Buzzer::play::39               : [2] time=150 ms, level=3
    ```
-2. 
+2. Number in **[]** is Note array, **time** - Duration in ms, **level** -  Sound level 1,2,3, 0 - no sound
+3. For 
 ### Simulation Backlight
-
+1. Action Backlight print to Terminal in the form of a log. For example:
+   ```cpp
+   I- Mock.Backlight::on::22              : on backlight, timeout = 5000
+   I- Mock.Backlight::off::30             : off backlight
+   ```
+2. Only two log messages in the Backlight module, which is on the backlight, with a  time timeout in ms and off backlight
+### Simulation Vibro
+1. Action Vibro print to Terminal in the form of a log. For example:
+   ```cpp
+   I- Mock.Vibro::play::31                : play(melody[1])
+   I- Mock.Vibro::play::34                :   [0] effect=1, loop=0, pause=0
+   ```
+2. Number in **[]** is Note array, **time** - Duration in ms, **level** -  Sound level 1,2,3, 0 - no sound
 ### Simulation Sensor
 
 ### Include Header & Source file
