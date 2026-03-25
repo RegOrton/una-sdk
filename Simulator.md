@@ -77,8 +77,25 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
    I- Mock.Vibro::play::34                :   [0] effect=1, loop=0, pause=0
    ```
 2. Number in **[]** is Note array, **time** - Duration in ms, **level** -  Sound level 1,2,3, 0 - no sound
-### Simulation Sensor
-
+### Simulation Sensors
+- In File **ConfigurationSimulator.hpp** you can enable/disable simulate sensor, set sensor paramaters.
+- File **ConfigurationSimulator.hpp** located:
+#### GPS Sensor
+- Gps Sensor simulation located, speed, altitude and distance.
+- Simulator simulation movement user on stadium.
+- Have timer for simulation seach satelite.
+- Simulate GPS signal loss.
+- Noise for latitude/longitude.
+- Possibilities: on/off Sensor, set min and max speed, value timer for valid GPS data.
+  ```cpp
+  ```
+#### Heat Rate Sensor
+- Heat Rate Sensor simulation HR, AHR, RHR and trust level.
+- Possibilities: on/off Sensor, set min and max Heat Rate value, type training(Cycling, Hiking or Running).
+#### Battery Level Sensor
+- Battery Level Sensor simulation battery voltage drop.
+- Possibilities: on/off Sensor, set initial value and 
+#### IMU Sensor
 ### Include Header & Source file
 
 ### Transfer Application
