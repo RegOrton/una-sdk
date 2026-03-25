@@ -29,7 +29,7 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
 2. If you first open project click to **Generate Code(F4)**, it is need olny one.
 3. Click to **Run Simulator(F5)**.
 ### Start Simulator in Visual Studio
-1. This point need **olny one**. Open the chosen application project in TouchGFX Designer and click to **Generate Code(F4)**.
+1. This point need **only one**. Open the chosen application project in TouchGFX Designer and click to **Generate Code(F4)**.
 2. Go to and open the file.
 3. Click to start **Debug (F5)**.
 ### Simation Button
@@ -69,7 +69,7 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
    I- Mock.Backlight::on::22              : on backlight, timeout = 5000
    I- Mock.Backlight::off::30             : off backlight
    ```
-2. Only two log messages in the Backlight module, which is on the backlight, with a  time timeout in ms and off backlight
+2. Only two log messages in the Backlight module, which is on the backlight, with a  time timeout in ms and off the backlight
 ### Simulation Vibro
 1. Action Vibro print to Terminal in the form of a log. For example:
    ```cpp
@@ -78,24 +78,52 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
    ```
 2. Number in **[]** is Note array, **time** - Duration in ms, **level** -  Sound level 1,2,3, 0 - no sound
 ### Simulation Sensors
-- In File **ConfigurationSimulator.hpp** you can enable/disable simulate sensor, set sensor paramaters.
-- File **ConfigurationSimulator.hpp** located:
+- In File **ConfigurationSimulator.hpp**, you can enable/disable the simulation sensor and set simulation parameters.
+- File **ConfigurationSimulator.hpp** located: <app-name>\Software\Libs\Header
 #### GPS Sensor
-- Gps Sensor simulation located, speed, altitude and distance.
+- GPS Sensor simulation located, speed, altitude, and distance.
 - Simulator simulation movement user on stadium.
-- Have timer for simulation seach satelite.
+- Have a timer for the simulation of each satellite.
 - Simulate GPS signal loss.
 - Noise for latitude/longitude.
 - Possibilities: on/off Sensor, set min and max speed, value timer for valid GPS data.
   ```cpp
+   //GPS Sensor
+   #define GSP_SIM_ENABLE               1  // 0 - Disable
+   #define GSP_SIM_SPEED_MIN            20 // km/h
+   #define GPS_SIM_SPEED_BASE           25 // km/h
+   #define GPS_SIM_SPEED_MAX            30 // km/h
+   #define GPS_SIM_TIME_SEACH_SATELLITE 7 // seconds
   ```
 #### Heat Rate Sensor
-- Heat Rate Sensor simulation HR, AHR, RHR and trust level.
-- Possibilities: on/off Sensor, set min and max Heat Rate value, type training(Cycling, Hiking or Running).
+- Heat Rate Sensor simulation HR, AHR, RHR, and trust level.
+- Possibilities: on/off Sensor, set min and max Heat Rate value, type training(Cycling, Hiking, or Running).
+  ```cpp
+   //HeatRate Sensor
+   #define HEAT_RATE_SIM_ENABLE        1 // 0 - Disable
+   #define HEAT_RATE_SIM_MIN_HR        50
+   #define HEAT_RATE_SIM_MAX_HR        140
+   #define HEAT_RATE_SIM_TYPE_TRAINING 0// 0 - Cycling, 1 - Hiking, 2 - Running
+
+  ```
 #### Battery Level Sensor
 - Battery Level Sensor simulation battery voltage drop.
-- Possibilities: on/off Sensor, set initial value and 
+- Possibilities: on/off Sensor, set initial value, and step value.
+  ```cpp
+   // Battery Level Sensor
+   #define BATT_LEVEL_SIM_ENABLE      1 // 0 - Disable
+   #define BATT_LEVEL_SIM_START_VALUE 100 // 10 - 100%
+   #define BATT_LEVEL_SIM_STEP_VALUE  0.1 //percent 
+  ```
 #### IMU Sensor
+- IMU Sensor simulation Wring detect. Wring detect event activate backlight for 5 seconds.
+- Possibilities: on/off Sensor, change key to generate Wring detect.
+- For simulate a Wring detect event, click the **5** key on the keyboard.
+  ```cpp
+   // IMU Sensor
+   #define IMU_SIM_ENABLE           1 // 0 - Disable
+   #define IMU_SIM_WRIST_DETECT_KEY 5 
+  ```
 ### Include Header & Source file
 
 ### Transfer Application
