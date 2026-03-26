@@ -4,11 +4,11 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
 
 ## Table of Contents
 
-1. [Overview](#overview)
+1. [Getting Started](#getting-started)
 2. [Prerequisites](#prerequisites)
 3. [Opening SDK in VSCode](#opening-sdk-in-vscode)
 4. [Compiling Projects](#compiling-projects)
-5. [Compiling Examples](#compiling-examples) 
+5. [Simulation Sensors](#simulation-sensors) 
 
 ## Getting Started
 ### Need Components
@@ -17,10 +17,9 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
    - Download and install [Visual Studio](https://visualstudio.microsoft.com).
    - In the Installing window, where you choose to install needed packages, go to Workloads -> Desktop & Mobile and here choose **Desktop development with C++**.
    - In Installation Details, **Desktop development with C++** choose MSVC V143 and then click to install.
-3. Install UNA_SDK variables
-   -
-   -
-   -
+3. Install UNA_SDK variable
+   - Start **RunAddVariable.bat**, located: una-sdk\Utilities\Scripts\add-sdk-variable.
+   - Enter 1 to install/update the UNA_SDK variable in Environment Variables.
 ### Start Simulator in TouchGFX Designer
 1. TouchGFX Designer doesn't support Debug mode. If you want to debbuging project, use the Visual Studio program.
 1. Open TouhcGFX project.
@@ -30,9 +29,9 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
 3. Click to **Run Simulator(F5)**.
 ### Start Simulator in Visual Studio
 1. This point need **only one**. Open the chosen application project in TouchGFX Designer and click to **Generate Code(F4)**.
-2. Go to and open the file.
+2. Go to <app_name>\Software\Apps\TouchGFX-GUI\simulator\msvs and open the **Application.vcxproj** file.
 3. Click to start **Debug (F5)**.
-### Simation Button
+### Simulation Button
 1. For the Simulation mechanicals button in the UNA Simulator, use keyboard keys.
 2. You can see this message in Terminal Log, there how number keys are responsible for buttons on UNA watch.
    ```cpp
@@ -54,7 +53,7 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
    ---------------------------------------------------
    ```
 3. Info: 
-### Simation Buzzer
+### Simulation Buzzer
 1. Action Buzzer print to Terminal in the form of a log. For example:
    ```cpp
    I- Mock.Buzzer::play::39               : [0] time=150 ms, level=3
@@ -86,7 +85,7 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
 - Have a timer for the simulation of each satellite.
 - Simulate GPS signal loss.
 - Noise for latitude/longitude.
-- Possibilities: on/off Sensor, set min and max speed, value timer for valid GPS data.
+- Possibilities: on/off Sensor, set min and max speed, value timer for search GPS satellites.
   ```cpp
    //GPS Sensor
    #define GSP_SIM_ENABLE               1  // 0 - Disable
@@ -125,5 +124,21 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
    #define IMU_SIM_WRIST_DETECT_KEY 5 
   ```
 ### Include Header & Source file
-
+1. TouchGFX Designer
+   - Open **Application.vcxproj** in the text editor program, located: <app_name>\Software\Apps\TouchGFX-GUI\simulator\msvs.
+   - Header file path add in **ADDITIONAL_INCLUDE_PATHS** variable.
+   - Source file path add in **ADDITIONAL_SOURCES_UNA** variable.
+3. Visual Studio
+   - Open **MakeFile** in the text editor program, located: <app-name>\Software\Apps\TouchGFX-GUI\simulator\gcc
+   - Header file path add in **ClInclude** variable.
+   - Source file path add in **ClCompile** variable.
 ### Transfer Application
+1. If you move the Application in other place, you need to update the Toucgfx lib path, for this:
+   - Open **<name>.touchgfx** in the text editor program, located: <app_name>\Software\Apps\TouchGFX-GUI.
+   - Find **"TouchGfxPath":** and update relative path to <una_sdk>/ThirdParty/touchgfx.
+   ```cpp
+    "SelectedStartupLanguage": "GB",
+    "TouchGfxPath": "../../../../../../ThirdParty/touchgfx",
+    "UIPath": ".",
+   ```
+2. If you changes located **una_sdk** folder, you need update UNA_SDK variable, for this do point [Install UNA_SDK variable](#install-una-sdk-varible) 
