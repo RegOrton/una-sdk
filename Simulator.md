@@ -2,14 +2,6 @@
 
 The simulator application works only on Windows OS. UNA Simulator works on the TouchGFX Designer and Visual Studio programs.
 
-## Table of Contents
-
-1. [Getting Started](#getting-started)
-2. [Prerequisites](#prerequisites)
-3. [Opening SDK in VSCode](#opening-sdk-in-vscode)
-4. [Compiling Projects](#compiling-projects)
-5. [Simulation Sensors](#simulation-sensors) 
-
 ## Getting Started
 ### Need Components
 1. Download and install [TouchGFXDesigner](https://www.st.com/en/development-tools/touchgfxdesigner.html#get-software).
@@ -17,17 +9,16 @@ The simulator application works only on Windows OS. UNA Simulator works on the T
    - Download and install [Visual Studio](https://visualstudio.microsoft.com).
    - In the Installing window, where you choose to install needed packages, go to Workloads -> Desktop & Mobile and here choose **Desktop development with C++**.
    - In Installation Details, **Desktop development with C++** choose MSVC V143 and then click to install.
-3. Install UNA_SDK variable
-   - Start **RunAddVariable.bat**, located: una-sdk\Utilities\Scripts\add-sdk-variable.
-   - Enter 1 to install/update the UNA_SDK variable in Environment Variables.
-### Start Simulator in TouchGFX Designer
+### Install UNA_SDK variable
+1. Start **RunAddVariable.bat**, located: una-sdk\Utilities\Scripts\add-sdk-variable.
+2. Enter 1 to install/update the UNA_SDK variable in Environment Variables.
+### Start Simulator
+#### TouchGFX Designer
 1. TouchGFX Designer doesn't support Debug mode. If you want to debbuging project, use the Visual Studio program.
-1. Open TouhcGFX project.
-   - Examples: Go to 
-   - Tutorials: Go to 
-2. If you first open project click to **Generate Code(F4)**, it is need olny one.
+1. Open <name>.touchgfx, located: <app_name>\Software\Apps\TouchGFX-GUI.
+2. If you first open project click to **Generate Code(F4)**, it is need only one.
 3. Click to **Run Simulator(F5)**.
-### Start Simulator in Visual Studio
+#### Visual Studio
 1. This point need **only one**. Open the chosen application project in TouchGFX Designer and click to **Generate Code(F4)**.
 2. Go to <app_name>\Software\Apps\TouchGFX-GUI\simulator\msvs and open the **Application.vcxproj** file.
 3. Click to start **Debug (F5)**.
