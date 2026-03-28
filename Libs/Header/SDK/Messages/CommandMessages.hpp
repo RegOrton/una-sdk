@@ -128,7 +128,9 @@ struct RequestAppTerminate : public MessageBase {
         , code(0)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestAppTerminate) == 36, "RequestAppTerminate size must be 36 bytes");
+#endif
 
 /**
  * @brief Notify the Kernel that the activity session has ended.
@@ -156,7 +158,9 @@ struct RequestSetCapabilities : public MessageBase {
         , enMusicControl(false)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestSetCapabilities) == 36, "RequestSetCapabilities size must be 36 bytes");
+#endif
 
 /**
  * @brief Battery status request
@@ -176,7 +180,9 @@ struct RequestBatteryStatus : public MessageBase {
         , isCharging(false)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestBatteryStatus) == 44, "RequestBatteryStatus size must be 44 bytes");
+#endif
 
 /**
  * @brief System settings request
@@ -209,7 +215,9 @@ struct RequestSystemSettings : public MessageBase {
         , heartRateTh {}
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestSystemSettings) == 56, "RequestSystemSettings size must be 56 bytes");
+#endif
 
 /**
  * @brief System information request
@@ -232,7 +240,9 @@ struct RequestSystemInfo : public MessageBase {
         hardwareVersion[0] = '\0';
     }
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestSystemInfo) == 72, "RequestSystemInfo size must be 72 bytes");
+#endif
 
 /**
  * @brief Memory information request
@@ -256,7 +266,9 @@ struct RequestMemoryInfo : public MessageBase {
         , fragmentation(0)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestMemoryInfo) == 52, "RequestMemoryInfo size must be 52 bytes");
+#endif
 
 /**
  * @brief Display configuration request
@@ -280,7 +292,9 @@ struct RequestDisplayConfig : public MessageBase {
         , format(0)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestDisplayConfig) == 40, "RequestDisplayConfig size must be 40 bytes");
+#endif
 
 /**
  * @brief Display update request
@@ -304,7 +318,9 @@ struct RequestDisplayUpdate : public MessageBase {
         , width(0), height(0)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestDisplayUpdate) == 44, "RequestDisplayUpdate size must be 44 bytes");
+#endif
 
 /**
  * @brief Backlight control request
@@ -321,7 +337,9 @@ struct RequestBacklightSet : public MessageBase {
         , autoOffTimeoutMs(0)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestBacklightSet) == 40, "RequestBacklightSet size must be 40 bytes");
+#endif
 
 /**
  * @brief Buzzer play request
@@ -346,7 +364,9 @@ struct RequestBuzzerPlay : public MessageBase {
         , notes {}
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestBuzzerPlay) == 116, "RequestBuzzerPlay size must be 116 bytes");
+#endif
 
 /**
  * @brief Vibration play request
@@ -394,7 +414,9 @@ struct RequestVibroPlay : public MessageBase {
         , notes {}
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestVibroPlay) == 100, "RequestVibroPlay size must be 100 bytes");
+#endif
 
 // =============================================================================
 // Event messages
@@ -416,7 +438,9 @@ struct EventSystemPowerLow : public MessageBase {
         , estimatedMinutes(0)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(EventSystemPowerLow) == 36, "EventSystemPowerLow size must be 36 bytes");
+#endif
 
 /**
  * @brief System power critical event
@@ -434,7 +458,9 @@ struct EventSystemPowerCritical : public MessageBase {
         , estimatedMinutes(0)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(EventSystemPowerCritical) == 36, "EventSystemPowerCritical size must be 36 bytes");
+#endif
 
 /**
  * @brief GUI frame tick command
@@ -452,7 +478,9 @@ struct EventGuiTick : public MessageBase {
         , timestamp(0)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(EventGuiTick) == 40, "EventGuiTick size must be 40 bytes");
+#endif
 
 /**
  * @brief Button event
@@ -500,7 +528,9 @@ struct EventButton : public MessageBase {
         , event(Event::PRESS)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(EventButton) == 40, "EventButton size must be 40 bytes");
+#endif
 
 // =============================================================================
 // Glance messages
@@ -524,7 +554,9 @@ struct RequestGlanceConfig : public MessageBase {
         , maxControls(0)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestGlanceConfig) == 40, "RequestGlanceConfig size must be 40 bytes");
+#endif
 
 /**
  * @brief Glance update request
@@ -544,7 +576,9 @@ struct RequestGlanceUpdate : public MessageBase {
         , controlsNumber(0)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(RequestGlanceUpdate) == 44, "RequestGlanceUpdate size must be 44 bytes");
+#endif
 
 /**
  * @brief Notify service that glance mode started
@@ -568,7 +602,9 @@ struct EventGlanceTick : public MessageBase {
         , timestamp(0)
     {}
 };
+#if __SIZEOF_POINTER__ == 4
 static_assert(sizeof(EventGlanceTick) == 40, "EventGlanceTick size must be 40 bytes");
+#endif
 
 /**
  * @brief Notify service that glance mode stopped

@@ -14,7 +14,9 @@
 #include <cstdint>
 #include <cstdarg>
 #include <stdio.h>
-#include <windows.h>
+#ifdef _WIN32
+#include <windows.h>  // Fix: was unconditional; not used on Linux
+#endif
 
 #include "SDK/Simulator/OS/OS.hpp"
 #include "SDK/Interfaces/IApp.hpp"
